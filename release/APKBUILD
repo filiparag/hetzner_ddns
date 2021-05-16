@@ -1,0 +1,44 @@
+# Contributor: Filip Parag <filip@parag.rs>
+# Maintainer:
+pkgname=hetzner_ddns
+pkgver=0.1.1
+pkgrel=0
+pkgdesc="Dynamic DNS daemon for Hetzner DNS"
+arch="noarch"
+url="https://github.com/filiparag/hetzner_ddns"
+license="BSD"
+depends="curl jq"
+depends_doc="man-db"
+depends_openrc="openrc"
+makedepends="make"
+install=""
+subpackages="${pkgname}-doc ${pkgname}-openrc"
+giturl="$url"
+source="${pkgname}-${pkgver}.tar.gz::${url}/archive/${pkgver}.tar.gz"
+builddir="$srcdir/$pkgname-$pkgver"
+options="!check"
+
+prepare() {
+    find "${builddir}" -maxdepth 1 -type f \
+        -exec sed -i 's:/usr/local/etc:/etc:g' {} \; \
+        -exec sed -i 's:/usr/local:/usr:g' {} \;
+}
+
+check() {
+    default_check
+}
+
+openrc() {
+    default_openrc
+}
+
+doc() {
+    default_doc
+}
+
+package() {
+	cd "${builddir}"
+    make prefix="${pkgdir}" install openrc
+}
+
+sha256sums="0000000000000000000000000000000000000000000000000000000000000000  $pkgname-$pkgver.tar.gz"
