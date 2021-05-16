@@ -3,19 +3,27 @@
 self='hetzner_ddns'
 
 # Read variabels from configuration file
-if test -f "/usr/local/etc/$self.conf"; then
+if test -G "/usr/local/etc/$self.conf"; then
     . "/usr/local/etc/$self.conf"
 else
+    >&2 echo 'unable to read configuration file'
     exit 78
 fi
 
-# Check environment
+# Check dependencies
 if ! command -v curl > /dev/null || \
    ! command -v awk > /dev/null || \
-   ! command -v jq > /dev/null || \
-   ! touch "/var/log/$self.log";
+   ! command -v jq > /dev/null
 then
+    >&2 echo 'missing dependency'
     exit 1
+fi
+
+# Check logging support
+if ! touch "/var/log/$self.log";
+then
+    >&2 echo 'unable to open logfile'
+    exit 2
 fi
 
 get_zone() {
@@ -27,7 +35,7 @@ get_zone() {
         awk "\$1==\"$domain\" {print \$2}"
     )"
     if [ -z "$zone" ]; then
-        return 10
+        return 1
     else
         printf '[%s] Zone for %s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
             "$domain" "$zone" >> "/var/log/$self.log"
@@ -88,7 +96,7 @@ get_ip_addr() {
         )"
     fi
     if [ -z "$ipv4_cur" ] && [ -z "$ipv6_cur" ]; then
-        return 12
+        return 1
     fi
 }
 
