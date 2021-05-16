@@ -2,11 +2,11 @@
 .TH "hetzner_ddns" 1 "17 May 2021" "hetzner_ddns 0.2" "Hetzner DDNS Manual"
 .SH NAME
 .B hetzner_ddns
-\- Dynamic DNS daemon for Hetzner DNS
+\- Hetzner Dynamic DNS Daemon
 .SH SYNOPSIS
 .B hetzner_ddns
 .P
-This program should be run as a system service. 
+This program should be run as a system service.
 .SH USAGE
 .SS Run on startup
 service hetzner_ddns

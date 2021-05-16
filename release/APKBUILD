@@ -3,7 +3,7 @@
 pkgname=hetzner_ddns
 pkgver=0.2.0
 pkgrel=0
-pkgdesc="Dynamic DNS daemon for Hetzner DNS"
+pkgdesc="Hetzner Dynamic DNS Daemon"
 arch="noarch"
 url="https://github.com/filiparag/hetzner_ddns"
 license="BSD"

@@ -1,16 +1,12 @@
-# Dynamic DNS daemon for Hetzner DNS
+# Hetzner Dynamic DNS Daemon
 
-This script updates host's *A* and *AAAA* records on 
-Hetzner DNS whenever the IP address changes.
+A simple daemon to continuously update Hetzner DNS
+*A* and *AAAA* records for your server with a dynamic IP address.
+
+It features support for multiple subdomain records with painless
+configuration and administration.
 
 ## Installation
-
-### Dependencies
-
-- `awk`
-- `curl`
-- `jq`
-
 ### Install
 
 ```ini
@@ -30,6 +26,28 @@ sudo make openrc
 # systemd service
 sudo make systemd
 ```
+
+Dependencies: `awk`, `curl`, `jq`.
+## Configuration
+
+Configuration file is located at `/usr/local/etc/hetzner_ddns.conf`
+
+```sh
+# Seconds between updates / TTL value
+interval='60'
+
+# Hetzner DNS API key
+key='18fe3b02339b23ef2418f9feda1b69ef'
+
+# Top level domain name
+domain='example.com'
+
+# Space separated host subdomains (@ for domain itself)
+records='homelab media vpn'
+```
+
+To obtain an API key, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).
+
 ## Usage
 
 **Run on startup**
@@ -54,26 +72,6 @@ sudo systemctl start/stop hetzner_ddns
 ```
 
 **Log file** is located at `/var/log/hetzner_ddns.log` 
-
-## Configuration
-
-Configuration file is located at `/usr/local/etc/hetzner_ddns.conf`
-
-```sh
-# Seconds between updates / TTL value
-interval='60'
-
-# Hetzner DNS API key
-key='********************************'
-
-# Top level domain name
-domain='example.com'
-
-# Space separated host subdomains (@ for domain itself)
-records='homelab media vpn'
-```
-
-To obtain an API key, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).
 
 ## Privacy notice
 
