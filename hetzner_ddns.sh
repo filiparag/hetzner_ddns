@@ -1,19 +1,21 @@
 #!/bin/sh
 
+self='hetzner_ddns'
+
 # Read variabels from configuration file
-if test -f /usr/local/etc/hetzner_ddns.conf; then
-    . /usr/local/etc/hetzner_ddns.conf
+if test -f "/usr/local/etc/$self.conf"; then
+    . "/usr/local/etc/$self.conf"
 else
-    return 78
+    exit 78
 fi
 
 # Check environment
 if ! command -v curl > /dev/null || \
    ! command -v awk > /dev/null || \
    ! command -v jq > /dev/null || \
-   ! touch /var/log/hetzner_ddns.log;
+   ! touch "/var/log/$self.log";
 then
-    return 1
+    exit 1
 fi
 
 get_zone() {
@@ -28,7 +30,7 @@ get_zone() {
         return 10
     else
         printf '[%s] Zone for %s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$domain" "$zone" >> /var/log/hetzner_ddns.log
+            "$domain" "$zone" >> "/var/log/$self.log"
     fi
 }
 
@@ -52,9 +54,9 @@ get_record() {
         return 11
     else
         printf '[%s] Record for IPv4: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$record_ipv4" >> /var/log/hetzner_ddns.log
+            "$record_ipv4" >> "/var/log/$self.log"
         printf '[%s] Record for IPv6: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$record_ipv6" >> /var/log/hetzner_ddns.log
+            "$record_ipv6" >> "/var/log/$self.log"
     fi
 }
 
@@ -104,7 +106,7 @@ set_record() {
             \"zone_id\": \"$zone\"
             }" 1>/dev/null 2>/dev/null &&
         printf "[%s] Update IPv4: %s -> %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$ipv4_rec" "$ipv4_cur" >> /var/log/hetzner_ddns.log
+            "$ipv4_rec" "$ipv4_cur" >> "/var/log/$self.log"
     fi
     if [ -n "$ipv6_cur" ] && [ "$ipv6_cur" != "$ipv6_rec" ]; then
         curl -X "PUT" "https://dns.hetzner.com/api/v1/records/$record_ipv6" \
@@ -118,12 +120,12 @@ set_record() {
             \"zone_id\": \"$zone\"
             }" 1>/dev/null 2>/dev/null &&
         printf "[%s] Update IPv6: %s -> %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$ipv6_rec" "$ipv6_cur" >> /var/log/hetzner_ddns.log
+            "$ipv6_rec" "$ipv6_cur" >> "/var/log/$self.log"
     fi
 }
 
 printf '[%s] Started Hetzner DDNS daemon\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-            >> /var/log/hetzner_ddns.log
+            >> "/var/log/$self.log"
 
 while ! get_zone || ! get_record; do
     sleep $((interval/2+1))
