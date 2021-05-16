@@ -2,7 +2,7 @@
 # $FreeBSD$
 
 PORTNAME=	hetzner_ddns
-PORTVERSION=	0.1.1
+PORTVERSION=	0.2.0
 CATEGORIES=	dns
 
 MAINTAINER=	filip@parag.rs
