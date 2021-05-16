@@ -2,13 +2,13 @@
 .TH "hetzner_ddns" 1 "16 May 2021" "hetzner_ddns 0.1" "Hetzner DDNS Manual"
 .SH NAME
 .B hetzner_ddns
-\- Dynamic DNS daemon for Hetzner DNS service
+\- Dynamic DNS daemon for Hetzner DNS
 .SH SYNOPSIS
 .B hetzner_ddns
 .P
 This program should be run as a system service. 
 .SH USAGE
-.SS Enable in /etc/rc.conf
+.SS Run on startup
 service hetzner_ddns
 .B enable
 .SS Start
@@ -27,7 +27,7 @@ Configuration file is located at
 .B interval
 <seconds>
 .br
-Time between DNS record updates and also the TTL value
+Seconds between updates / TTL value
 .HP
 .B key
 <32 character key>

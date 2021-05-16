@@ -1,6 +1,6 @@
-Dynamic DNS daemon for Hetzner DNS service
+Dynamic DNS daemon for Hetzner DNS
 
-This script updates host's A and AAAA records on 
+This script updates host's A and AAAA records on
 Hetzner DNS whenever the IP address changes.
 
 WWW: https://github.com/filiparag/hetzner_ddns
