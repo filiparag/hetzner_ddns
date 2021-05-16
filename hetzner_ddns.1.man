@@ -1,0 +1,47 @@
+.\" Manual for hetzner_ddns.
+.TH "hetzner_ddns" 1 "16 May 2021" "hetzner_ddns 0.1" "Hetzner DDNS Manual"
+.SH NAME
+.B hetzner_ddns
+\- Dynamic DNS daemon for Hetzner DNS service
+.SH SYNOPSIS
+.B hetzner_ddns
+.P
+This program should be run as a system service. 
+.SH USAGE
+.SS Enable in /etc/rc.conf
+service hetzner_ddns
+.B enable
+.SS Start
+service hetzner_ddns
+.B start
+.SS Stop
+service hetzner_ddns
+.B stop
+.SS Runtime messages log file
+Runtime log is located at
+.I /var/log/hetzner_ddns.log 
+.SH CONFIGURATION
+Configuration file is located at 
+.I /usr/local/etc/hetzner_ddns.conf
+.HP
+.B interval
+<seconds>
+.br
+Time between DNS record updates and also the TTL value
+.HP
+.B key
+<32 character key>
+.br
+Hetzner DNS API key
+.HP
+.B domain
+<domain name>
+.br
+Top level domain name
+.HP
+.B name
+<hostname>
+.br
+Host subdomain reecord (
+.B @
+for the domain itself )
