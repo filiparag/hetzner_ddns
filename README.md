@@ -1,5 +1,8 @@
 # Dynamic DNS daemon for Hetzner DNS service
 
+This script updates host's A and AAAA records on 
+Hetzner DNS whenever the IP address changes.
+
 ## Installation
 
 ### FreeBSD
