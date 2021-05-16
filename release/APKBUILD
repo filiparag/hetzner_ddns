@@ -41,4 +41,4 @@ package() {
     make prefix="${pkgdir}" install openrc
 }
 
-sha256sums="0000000000000000000000000000000000000000000000000000000000000000  $pkgname-$pkgver.tar.gz"
+sha256sums="e20f2650e70f21861687ef14b042a512ab119c5df0f87cdb216e19389a931cc4  $pkgname-$pkgver.tar.gz"

@@ -74,3 +74,8 @@ name='homelab'
 ```
 
 To obtain an API key, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).
+
+## Privacy notice
+
+This script relies on Akamai's [What's My IP](http://whatismyip.akamai.com/)
+service to retrieve public IP address.
