@@ -18,6 +18,10 @@ systemd: hetzner_ddns.service
 	@mkdir -p /etc/systemd/system
 	@install -m 0755 -p hetzner_ddns.service /etc/systemd/system/hetzner_ddns.service
 
+openrc: hetzner_ddns.init
+	@mkdir -p /etc/init.d
+	@install -m 0755 -p hetzner_ddns.init /etc/init.d/hetzner_ddns
+
 docs: hetzner_ddns.1.man
 	@mkdir -p /usr/local/share/man/man1
 	@install -m 0644 -p hetzner_ddns.1.man /usr/local/share/man/man1/hetzner_ddns.1
@@ -33,3 +37,4 @@ remove:
 			/usr/local/share/man/man1/hetzner_ddns.1.gz \
 			/usr/local/etc/rc.d/hetzner_ddns \
 			/etc/systemd/system/hetzner_ddns.service \
+			/etc/init.d/hetzner_ddns

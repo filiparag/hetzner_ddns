@@ -1,0 +1,15 @@
+#!/sbin/openrc-run
+
+depend() {
+	need net
+	use dns netmount
+	after bootmisc
+}
+
+command="/usr/local/bin/${RC_SVCNAME}"
+pidfile="/var/run/${RC_SVCNAME}.pid"
+
+start() {
+	"$command" &
+    echo $! > "$pidfile"
+}
