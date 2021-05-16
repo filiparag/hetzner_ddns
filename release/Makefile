@@ -6,7 +6,7 @@ PORTVERSION=	0.2.0
 CATEGORIES=	dns
 
 MAINTAINER=	filip@parag.rs
-COMMENT=	Dynamic DNS daemon for Hetzner DNS service
+COMMENT=	Hetzner Dynamic DNS Daemon
 
 LICENSE=	BSD2CLAUSE
 

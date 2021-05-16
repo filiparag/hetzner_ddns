@@ -7,7 +7,6 @@ It features support for multiple subdomain records with painless
 configuration and administration.
 
 ## Installation
-### Install
 
 ```ini
 # Download
@@ -17,17 +16,23 @@ cd hetzner_ddns
 # Install
 sudo make install
 
+# systemd service
+sudo make systemd
+
 # FreeBSD service
 sudo make rc.d
 
 # OpenRC service
 sudo make openrc
-
-# systemd service
-sudo make systemd
 ```
 
 Dependencies: `awk`, `curl`, `jq`.
+
+Prebuilt packages for the latest stable version can be found
+[here](https://github.com/filiparag/hetzner_ddns/releases/latest).
+
+Feel free to contribute to [first-party support](./release) for other operating systems.
+
 ## Configuration
 
 Configuration file is located at `/usr/local/etc/hetzner_ddns.conf`
@@ -52,23 +57,23 @@ To obtain an API key, go to [Hetzner DNS Console](https://dns.hetzner.com/settin
 
 **Run on startup**
 ```ini
+# systemd
+sudo systemctl enable hetzner_ddns
+
 # FreeBSD
 sudo service hetzner_ddns enable
 
 # OpenRC
 sudo rc-update add hetzner_ddns
-
-# systemd
-sudo systemctl enable hetzner_ddns
 ```
 
 **Start/Stop**
 ```ini
-# FreeBSD and OpenRC
-sudo service hetzner_ddns start/stop
-
 # systemd
 sudo systemctl start/stop hetzner_ddns
+
+# FreeBSD and OpenRC
+sudo service hetzner_ddns start/stop
 ```
 
 **Log file** is located at `/var/log/hetzner_ddns.log` 
