@@ -6,9 +6,9 @@ script: hetzner_ddns.sh
 
 config: hetzner_ddns.conf
 	@mkdir -p $(prefix)/usr/local/etc
-	@install -m 0644 -p hetzner_ddns.conf $(prefix)/usr/local/etc/hetzner_ddns.conf.sample
+	@install -m 0640 -p hetzner_ddns.conf $(prefix)/usr/local/etc/hetzner_ddns.conf.sample
 	@test -f $(prefix)/usr/local/etc/hetzner_ddns.conf || \
-		install -m 0644 -p hetzner_ddns.conf $(prefix)/usr/local/etc/hetzner_ddns.conf
+		install -m 0640 -p hetzner_ddns.conf $(prefix)/usr/local/etc/hetzner_ddns.conf
 
 rc.d: hetzner_ddns.rc
 	@mkdir -p $(prefix)/usr/local/etc/rc.d
