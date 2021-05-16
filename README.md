@@ -69,8 +69,8 @@ key='********************************'
 # Top level domain name
 domain='example.com'
 
-# Host subdomain reecord (@ for the domain itself)
-name='homelab'
+# Space separated host subdomains (@ for domain itself)
+records='homelab media vpn'
 ```
 
 To obtain an API key, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).

@@ -49,23 +49,36 @@ get_record() {
             curl "https://dns.hetzner.com/api/v1/records?zone_id=$zone" \
                 -H "Auth-API-Token: $key" 2>/dev/null | \
             jq -r '.records[] | .name + " " + .type + " " + .id' | \
-            awk "\$1==\"$name\" && \$2==\"A\" {print \$3}"
+            awk "\$1==\"$1\" && \$2==\"A\" {print \$3}"
         )"
         record_ipv6="$(
             curl "https://dns.hetzner.com/api/v1/records?zone_id=$zone" \
                 -H "Auth-API-Token: $key" 2>/dev/null | \
             jq -r '.records[] | .name + " " + .type + " " + .id' | \
-            awk "\$1==\"$name\" && \$2==\"AAAA\" {print \$3}"
+            awk "\$1==\"$1\" && \$2==\"AAAA\" {print \$3}"
         )"
     fi
     if [ -z "$record_ipv4" ] && [ -z "$record_ipv6" ]; then
-        return 11
+        return 1
     else
-        printf '[%s] Record for IPv4: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$record_ipv4" >> "/var/log/$self.log"
-        printf '[%s] Record for IPv6: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$record_ipv6" >> "/var/log/$self.log"
+        printf '[%s] IPv4 record for %s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1.$domain" \
+            "${record_ipv4:-(missing)}" >> "/var/log/$self.log"
+        printf '[%s] IPv6 record for %s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1.$domain" \
+            "${record_ipv6:-(missing)}" >> "/var/log/$self.log"
     fi
+}
+
+get_records() {
+    # Get all record IDs
+    for n in $records; do
+        if get_record "$n"; then
+            records_ipv4="$records_ipv4$n=$record_ipv4 "
+            records_ipv6="$records_ipv6$n=$record_ipv6 "
+        else
+            printf '[%s] Missing both records for %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
+                "$n.$domain" >> "/var/log/$self.log"
+        fi
+    done
 }
 
 get_ip_addr() {
@@ -102,7 +115,7 @@ get_ip_addr() {
 
 set_record() {
     # Update record if IP address has changed
-    if [ -n "$ipv4_cur" ] && [ "$ipv4_cur" != "$ipv4_rec" ]; then
+    if [ -n "$record_ipv4" ] && [ -n "$ipv4_cur" ] && [ "$ipv4_cur" != "$ipv4_rec" ]; then
         curl -X "PUT" "https://dns.hetzner.com/api/v1/records/$record_ipv4" \
             -H 'Content-Type: application/json' \
             -H "Auth-API-Token: $key" \
@@ -110,13 +123,13 @@ set_record() {
             \"value\": \"$ipv4_cur\",
             \"ttl\": $interval,
             \"type\": \"A\",
-            \"name\": \"$name\",
+            \"name\": \"$n\",
             \"zone_id\": \"$zone\"
             }" 1>/dev/null 2>/dev/null &&
-        printf "[%s] Update IPv4: %s -> %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$ipv4_rec" "$ipv4_cur" >> "/var/log/$self.log"
+        printf "[%s] Update IPv4 for %s: %s => %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
+            "$n.$domain" "$ipv4_rec" "$ipv4_cur" >> "/var/log/$self.log"
     fi
-    if [ -n "$ipv6_cur" ] && [ "$ipv6_cur" != "$ipv6_rec" ]; then
+    if [ -n "$record_ipv6" ] && [ -n "$ipv6_cur" ] && [ "$ipv6_cur" != "$ipv6_rec" ]; then
         curl -X "PUT" "https://dns.hetzner.com/api/v1/records/$record_ipv6" \
             -H 'Content-Type: application/json' \
             -H "Auth-API-Token: $key" \
@@ -124,24 +137,46 @@ set_record() {
             \"value\": \"$ipv6_cur\",
             \"ttl\": $interval,
             \"type\": \"AAAA\",
-            \"name\": \"$name\",
+            \"name\": \"$n\",
             \"zone_id\": \"$zone\"
             }" 1>/dev/null 2>/dev/null &&
-        printf "[%s] Update IPv6: %s -> %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$ipv6_rec" "$ipv6_cur" >> "/var/log/$self.log"
+        printf "[%s] Update IPv6 for %s: %s => %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
+            "$n.$domain" "$ipv6_rec" "$ipv6_cur" >> "/var/log/$self.log"
     fi
+}
+
+pick_record() {
+    # Get record ID from array
+    echo "$2" | \
+    awk "{
+        for(i=1;i<=NF;i++){
+            n=\$i;gsub(/=.*/,\"\",n);
+            r=\$i;gsub(/.*=/,\"\",r);
+            if(n==\"$1\"){
+                print r;break
+            }
+        }}"
+}
+
+set_records() {
+    # Update all records if possible
+    for n in $records; do
+        record_ipv4="$(pick_record "$n" "$records_ipv4")"
+        record_ipv6="$(pick_record "$n" "$records_ipv6")"
+        if [ -n "$record_ipv4" ] || [ -n "$record_ipv6" ]; then
+            get_ip_addr && set_record
+        fi
+    done
 }
 
 printf '[%s] Started Hetzner DDNS daemon\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
             >> "/var/log/$self.log"
 
-while ! get_zone || ! get_record; do
+while ! get_zone || ! get_records; do
     sleep $((interval/2+1))
 done
 
 while true; do
-    get_ip_addr
-    set_record
+    set_records
     sleep "$interval"
 done
-
