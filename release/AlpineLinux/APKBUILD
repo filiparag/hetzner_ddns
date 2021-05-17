@@ -1,7 +1,7 @@
 # Contributor: Filip Parag <filip@parag.rs>
 # Maintainer:
 pkgname=hetzner_ddns
-pkgver=0.2.0
+pkgver=0.2.1
 pkgrel=0
 pkgdesc="Hetzner Dynamic DNS Daemon"
 arch="noarch"
@@ -41,4 +41,4 @@ package() {
 	make prefix="${pkgdir}" install openrc
 }
 
-sha256sums="7d99213dc217dc3d930c68fb411632027ed60f010dd97f42c08c662708299754  $pkgname-$pkgver.tar.gz"
+sha256sums="5ff20371971ebfb07e91e66f4bf21b9da62afec9ecfb88b6492dc867710a07c1  $pkgname-$pkgver.tar.gz"
