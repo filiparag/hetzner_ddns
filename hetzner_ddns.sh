@@ -81,7 +81,7 @@ get_records() {
     done
 }
 
-get_ip_addr() {
+get_record_ip_addr() {
     # Get record's IP address
     if [ -n "$record_ipv4" ]; then
         ipv4_rec="$(
@@ -97,17 +97,19 @@ get_ip_addr() {
             jq -r '.record.value'
         )"
     fi
-    # Get current IP address
-    if [ -n "$record_ipv4" ]; then
-        ipv4_cur="$(
-            curl 'http://ipv4.whatismyip.akamai.com/' 2>/dev/null
-        )"
+    if [ -z "$ipv4_rec" ] && [ -z "$ipv6_rec" ]; then
+        return 1
     fi
-    if [ -n "$record_ipv6" ]; then
-        ipv6_cur="$(
-            curl 'http://ipv6.whatismyip.akamai.com/' 2>/dev/null
-        )"
-    fi
+}
+
+get_my_ip_addr() {
+    # Get current public IP address
+    ipv4_cur="$(
+        curl 'http://ipv4.whatismyip.akamai.com/' 2>/dev/null
+    )"
+    ipv6_cur="$(
+        curl 'http://ipv6.whatismyip.akamai.com/' 2>/dev/null
+    )"
     if [ -z "$ipv4_cur" ] && [ -z "$ipv6_cur" ]; then
         return 1
     fi
@@ -159,14 +161,17 @@ pick_record() {
 }
 
 set_records() {
-    # Update all records if possible
-    for n in $records; do
-        record_ipv4="$(pick_record "$n" "$records_ipv4")"
-        record_ipv6="$(pick_record "$n" "$records_ipv6")"
-        if [ -n "$record_ipv4" ] || [ -n "$record_ipv6" ]; then
-            get_ip_addr && set_record
-        fi
-    done
+    # Get my public IP address
+    if get_my_ip_addr; then
+        # Update all records if possible
+        for n in $records; do
+            record_ipv4="$(pick_record "$n" "$records_ipv4")"
+            record_ipv6="$(pick_record "$n" "$records_ipv6")"
+            if [ -n "$record_ipv4" ] || [ -n "$record_ipv6" ]; then
+                get_record_ip_addr && set_record
+            fi
+        done
+    fi
 }
 
 printf '[%s] Started Hetzner DDNS daemon\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
