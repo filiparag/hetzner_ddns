@@ -1,0 +1,5 @@
+package/**
+!package/DEBIAN
+!package/DEBIAN/control
+!package/DEBIAN/conffiles
+!.gitignore

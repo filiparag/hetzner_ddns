@@ -8,6 +8,17 @@ configuration and administration.
 
 ## Installation
 
+### Prebuilt packages
+
+Packages for the latest stable version can be found
+[here](https://github.com/filiparag/hetzner_ddns/releases/latest).
+
+Feel free to contribute to [first-party support](./release) for other operating systems.
+
+### Manual Installation
+
+Dependencies: `awk`, `curl`, `jq`.
+
 ```ini
 # Download
 git clone https://github.com/filiparag/hetzner_ddns.git
@@ -25,13 +36,6 @@ sudo make rc.d
 # OpenRC service
 sudo make openrc
 ```
-
-Dependencies: `awk`, `curl`, `jq`.
-
-Prebuilt packages for the latest stable version can be found
-[here](https://github.com/filiparag/hetzner_ddns/releases/latest).
-
-Feel free to contribute to [first-party support](./release) for other operating systems.
 
 ## Configuration
 
@@ -51,7 +55,10 @@ domain='example.com'
 records='homelab media vpn'
 ```
 
-To obtain an API key, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).
+*Note:* prebuilt packages for Linux distributions store configuration file in
+`/etc` instead of `/usr/local/etc`.
+
+To obtain an **API key**, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).
 
 ## Usage
 

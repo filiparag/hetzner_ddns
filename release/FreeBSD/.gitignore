@@ -1,6 +1,4 @@
 **
-!PKGBUILD
-!APKBUILD
 !Makefile
 !pkg-descr
 !.gitignore

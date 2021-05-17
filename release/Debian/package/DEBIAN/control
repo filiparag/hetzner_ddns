@@ -1,0 +1,11 @@
+Package:	hetzner-ddns
+Version:	0.2.0
+Maintainer:	Filip Parag <filip@parag.rs>
+Description:	Hetzner Dynamic DNS Daemon
+Section:	net
+Vcs-Browser:	https://github.com/filiparag/hetzner_ddns
+Vcs-Git:	git://github.com/filiparag/hetzner_ddns.git
+Homepage:	https://github.com/filiparag/hetzner_ddns
+Architecture:	all
+Depends:	gawk, curl, jq
+Suggests:	man
