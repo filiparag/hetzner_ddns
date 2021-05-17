@@ -13,12 +13,12 @@ sha256sums=('7d99213dc217dc3d930c68fb411632027ed60f010dd97f42c08c662708299754')
 backup=("etc/${pkgname}.conf")
 
 prepare() {
-    find "${pkgname}-${pkgver}" -maxdepth 1 -type f \
-        -exec sed -i 's:/usr/local/etc:/etc:g' {} \; \
-        -exec sed -i 's:/usr/local:/usr:g' {} \;
+	find "${pkgname}-${pkgver}" -maxdepth 1 -type f \
+		-exec sed -i 's:/usr/local/etc:/etc:g' {} \; \
+		-exec sed -i 's:/usr/local:/usr:g' {} \;
 }
 
 package() {
-  cd "${pkgname}-${pkgver}"
-  make prefix="${pkgdir}" install systemd
+	cd "${pkgname}-${pkgver}"
+	make prefix="${pkgdir}" install systemd
 }

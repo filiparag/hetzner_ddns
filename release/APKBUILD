@@ -19,26 +19,26 @@ builddir="$srcdir/$pkgname-$pkgver"
 options="!check"
 
 prepare() {
-    find "${builddir}" -maxdepth 1 -type f \
-        -exec sed -i 's:/usr/local/etc:/etc:g' {} \; \
-        -exec sed -i 's:/usr/local:/usr:g' {} \;
+	find "${builddir}" -maxdepth 1 -type f \
+		-exec sed -i 's:/usr/local/etc:/etc:g' {} \; \
+		-exec sed -i 's:/usr/local:/usr:g' {} \;
 }
 
 check() {
-    default_check
+	default_check
 }
 
 openrc() {
-    default_openrc
+	default_openrc
 }
 
 doc() {
-    default_doc
+	default_doc
 }
 
 package() {
 	cd "${builddir}"
-    make prefix="${pkgdir}" install openrc
+	make prefix="${pkgdir}" install openrc
 }
 
 sha256sums="7d99213dc217dc3d930c68fb411632027ed60f010dd97f42c08c662708299754  $pkgname-$pkgver.tar.gz"

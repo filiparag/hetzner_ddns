@@ -15,12 +15,12 @@ rc.d: hetzner_ddns.rc
 	@install -m 0755 -p hetzner_ddns.rc $(prefix)/usr/local/etc/rc.d/hetzner_ddns
 
 systemd: hetzner_ddns.service
-	@mkdir -p $(prefix)/usr/local/etc/systemd/system
-	@install -m 0755 -p hetzner_ddns.service $(prefix)/usr/local/etc/systemd/system/hetzner_ddns.service
+	@mkdir -p $(prefix)/etc/systemd/system
+	@install -m 0755 -p hetzner_ddns.service $(prefix)/etc/systemd/system/hetzner_ddns.service
 
 openrc: hetzner_ddns.init
-	@mkdir -p $(prefix)/usr/local/etc/init.d
-	@install -m 0755 -p hetzner_ddns.init $(prefix)/usr/local/etc/init.d/hetzner_ddns
+	@mkdir -p $(prefix)/etc/init.d
+	@install -m 0755 -p hetzner_ddns.init $(prefix)/etc/init.d/hetzner_ddns
 
 docs: hetzner_ddns.1.man
 	@mkdir -p $(prefix)/usr/local/share/man/man1
@@ -33,8 +33,8 @@ docs: hetzner_ddns.1.man
 
 remove:
 	@rm -f 	$(prefix)/usr/local/bin/hetzner_ddns \
-			$(prefix)/usr/local/etc/hetzner_ddns.conf.sample \
-			$(prefix)/usr/local/share/man/man1/hetzner_ddns.1.gz \
-			$(prefix)/usr/local/etc/rc.d/hetzner_ddns \
-			$(prefix)/usr/local/etc/systemd/system/hetzner_ddns.service \
-			$(prefix)/usr/local/etc/init.d/hetzner_ddns
+		$(prefix)/usr/local/etc/hetzner_ddns.conf.sample \
+		$(prefix)/usr/local/share/man/man1/hetzner_ddns.1.gz \
+		$(prefix)/usr/local/etc/rc.d/hetzner_ddns \
+		$(prefix)/etc/systemd/system/hetzner_ddns.service \
+		$(prefix)/etc/init.d/hetzner_ddns
