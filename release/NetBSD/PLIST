@@ -1,0 +1,5 @@
+@comment $NetBSD: PLIST,v 1.49 2021/01/01 00:00:00 filiparag Exp $
+bin/hetzner_ddns
+man/man1/hetzner_ddns.1
+share/examples/hetzner_ddns/hetzner_ddns.conf
+share/examples/rc.d/hetzner_ddns

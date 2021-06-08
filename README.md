@@ -31,7 +31,10 @@ sudo make install
 sudo make systemd
 
 # FreeBSD service
-sudo make rc.d
+sudo make freebsd-rc.d
+
+# NetBSD service
+sudo make netbsd-rc.d
 
 # OpenRC service
 sudo make openrc
@@ -63,6 +66,7 @@ Default configuration location differs in prebuilt packages:
 
 - Linux disttributions: `/etc/hetzner_ddns.conf`
 - FreeBSD: `/usr/local/etc/hetzner_ddns.conf`
+- NetBSD: `/usr/pkg/etc/hetzner_ddns.conf`
 
 ## Usage
 
@@ -71,7 +75,7 @@ Default configuration location differs in prebuilt packages:
 # systemd
 sudo systemctl enable hetzner_ddns
 
-# FreeBSD
+# FreeBSD and NetBSD
 sudo service hetzner_ddns enable
 
 # OpenRC
@@ -83,7 +87,7 @@ sudo rc-update add hetzner_ddns
 # systemd
 sudo systemctl start/stop hetzner_ddns
 
-# FreeBSD and OpenRC
+# FreeBSD, NetBSD and OpenRC
 sudo service hetzner_ddns start/stop
 ```
 

@@ -1,0 +1,47 @@
+# $NetBSD: Makefile,v 1.136 2021/01/01 09:03:05 ryoon Exp $
+
+DISTNAME=	hetzner_ddns
+PKGVER=		0.2.2
+PKGNAME=	${DISTNAME}-${PKGVER}
+CATEGORIES=	net
+
+MAINTAINER=	filip@parag.rs
+HOMEPAGE=	https://github.com/${GITHUB_USER}/${DISTNAME}
+COMMENT=	Hetzner Dynamic DNS Daemon
+LICENSE=	2-clause-bsd
+
+GITHUB_USER=	filiparag
+MASTER_SITES=	${MASTER_SITE_GITHUB:=filiparag/}
+GITHUB_RELEASE=	${PKGVER}
+
+INSTALLATION_DIRS=	bin ${PREFIX}/share/examples/rc.d \
+			${PREFIX}/${PKGMANDIR}/man1 ${EGDIR}
+
+WRKSRC=		${WRKDIR}/${DISTNAME}-${PKGVER}
+NO_BUILD=	yes
+NO_CONFIGURE=	yes
+
+EGDIR=			${PREFIX}/share/examples/${DISTNAME}
+CONF_FILES_PERMS=	${EGDIR}/${DISTNAME}.conf ${PKG_SYSCONFDIR}/${DISTNAME}.conf \
+			root wheel 0640
+
+RCD_SCRIPTS=	${DISTNAME}
+RCD_SCRIPT_SRC.${DISTNAME}?=	${WRKSRC}/${DISTNAME}.netbsd.rc
+
+DEPENDS+=	jq-[0-9]*:../../devel/jq
+DEPENDS+=	curl-[0-9]*:../../www/curl
+
+do-patch:
+	find ${WRKSRC} -maxdepth 1 -type f \
+		-exec sed -i "s:/usr/local/etc:${PKG_SYSCONFDIR}:g" {} \; \
+		-exec sed -i "s:/usr/local:${PREFIX}:g" {} \;
+
+do-install:
+	${INSTALL_SCRIPT} ${WRKSRC}/${DISTNAME}.sh \
+		${DESTDIR}${PREFIX}/bin/${DISTNAME}
+	${INSTALL_MAN} ${WRKSRC}/${DISTNAME}.1.man \
+		${DESTDIR}${PREFIX}/${PKGMANDIR}/man1/${DISTNAME}.1
+	${INSTALL_DATA} ${WRKSRC}/${DISTNAME}.conf \
+		${DESTDIR}${EGDIR}/${DISTNAME}.conf
+
+.include "../../mk/bsd.pkg.mk"
