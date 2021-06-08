@@ -1,6 +1,6 @@
 # Maintainer: Filip Parag <filip@parag.rs>
 pkgname=hetzner_ddns
-pkgver=0.2.1
+pkgver=0.2.2
 pkgrel=1
 pkgdesc="Hetzner Dynamic DNS Daemon"
 arch=('any')
