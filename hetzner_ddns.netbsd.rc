@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $NetBSD: hetzner_ddns,v 0.2.2 2012/06/10 00:00:00 filiparag Exp $
+# $NetBSD: hetzner_ddns,v 0.2.2 2020/06/08 00:00:00 filiparag Exp $
 #
 
 # PROVIDE: hetzner_ddns

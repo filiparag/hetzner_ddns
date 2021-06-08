@@ -12,7 +12,7 @@ LICENSE=	2-clause-bsd
 
 GITHUB_USER=	filiparag
 MASTER_SITES=	${MASTER_SITE_GITHUB:=filiparag/}
-GITHUB_RELEASE=	${PKGVER}
+GITHUB_TAG=	${PKGVER}
 
 INSTALLATION_DIRS=	bin ${PREFIX}/share/examples/rc.d \
 			${PREFIX}/${PKGMANDIR}/man1 ${EGDIR}

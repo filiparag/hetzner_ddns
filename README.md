@@ -10,6 +10,15 @@ configuration and administration.
 
 ### Prebuilt packages
 
+Officially supported operating systems:
+
+- [Alpine Linux](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-r0.apk)
+- [Arch Linux](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-1-any.pkg.tar.xz)
+- [Debian / Ubuntu](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2_all.deb)
+- [Fedora / openSUSE](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-1.noarch.rpm)
+- [FreeBSD](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-freebsd.txz)
+- [NetBSD](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-netbsd.tgz)
+
 Packages for the latest stable version can be found
 [here](https://github.com/filiparag/hetzner_ddns/releases/latest).
 
@@ -64,7 +73,7 @@ To obtain an **API key**, go to [Hetzner DNS Console](https://dns.hetzner.com/se
 
 Default configuration location differs in prebuilt packages:
 
-- Linux disttributions: `/etc/hetzner_ddns.conf`
+- Linux distributions: `/etc/hetzner_ddns.conf`
 - FreeBSD: `/usr/local/etc/hetzner_ddns.conf`
 - NetBSD: `/usr/pkg/etc/hetzner_ddns.conf`
 
