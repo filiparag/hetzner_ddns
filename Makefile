@@ -10,9 +10,13 @@ config: hetzner_ddns.conf
 	@test -f $(prefix)/usr/local/etc/hetzner_ddns.conf || \
 		install -m 0640 -p hetzner_ddns.conf $(prefix)/usr/local/etc/hetzner_ddns.conf
 
-%-rc.d: hetzner_ddns.%.rc
+freebsd-rc: hetzner_ddns.freebsd.rc
 	@mkdir -p $(prefix)/usr/local/etc/rc.d
-	@install -m 0755 -p hetzner_ddns.$*.rc $(prefix)/usr/local/etc/rc.d/hetzner_ddns
+	@install -m 0755 -p hetzner_ddns.freebsd.rc $(prefix)/usr/local/etc/rc.d/hetzner_ddns
+
+netbsd-rc: hetzner_ddns.netbsd.rc
+	@mkdir -p $(prefix)/etc/rc.d
+	@install -m 0755 -p hetzner_ddns.netbsd.rc $(prefix)/etc/rc.d/hetzner_ddns
 
 systemd: hetzner_ddns.service
 	@mkdir -p $(prefix)/etc/systemd/system

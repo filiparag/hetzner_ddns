@@ -40,10 +40,10 @@ sudo make install
 sudo make systemd
 
 # FreeBSD service
-sudo make freebsd-rc.d
+sudo make freebsd-rc
 
 # NetBSD service
-sudo make netbsd-rc.d
+sudo make netbsd-rc
 
 # OpenRC service
 sudo make openrc
