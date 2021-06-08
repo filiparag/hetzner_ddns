@@ -1,10 +1,10 @@
 .\" Manual for hetzner_ddns.
-.TH "hetzner_ddns" 1 "17 May 2021" "hetzner_ddns 0.2" "Hetzner DDNS Manual"
+.TH "hetzner_ddns" 1 "8 June 2021" "hetzner_ddns 0.2.2" "Hetzner DDNS Manual"
 .SH NAME
 .B hetzner_ddns
 \- Hetzner Dynamic DNS Daemon
 .SH SYNOPSIS
-.B hetzner_ddns
+.B hetzner_ddns [--daemon]
 .P
 This program should be run as a system service.
 .SH USAGE

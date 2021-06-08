@@ -55,10 +55,14 @@ domain='example.com'
 records='homelab media vpn'
 ```
 
-*Note:* prebuilt packages for Linux distributions store configuration file in
-`/etc` instead of `/usr/local/etc`.
-
 To obtain an **API key**, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).
+
+**Prebuilt packages**
+
+Default configuration location differs in prebuilt packages:
+
+- Linux disttributions: `/etc/hetzner_ddns.conf`
+- FreeBSD: `/usr/local/etc/hetzner_ddns.conf`
 
 ## Usage
 

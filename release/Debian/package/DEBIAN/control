@@ -1,5 +1,5 @@
 Package:	hetzner-ddns
-Version:	0.2.1
+Version:	0.2.2
 Maintainer:	Filip Parag <filip@parag.rs>
 Description:	Hetzner Dynamic DNS Daemon
 Section:	net
@@ -9,3 +9,5 @@ Homepage:	https://github.com/filiparag/hetzner_ddns
 Architecture:	all
 Depends:	gawk, curl, jq
 Suggests:	man
+Installed-Size:	9
+Priority:	optional

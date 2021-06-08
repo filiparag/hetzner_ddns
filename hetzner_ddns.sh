@@ -174,14 +174,31 @@ set_records() {
     fi
 }
 
-printf '[%s] Started Hetzner DDNS daemon\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-            >> "/var/log/$self.log"
+run_ddns() {
+    printf '[%s] Started Hetzner DDNS daemon\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
+                >> "/var/log/$self.log"
 
-while ! get_zone || ! get_records; do
-    sleep $((interval/2+1))
-done
+    while ! get_zone || ! get_records; do
+        sleep $((interval/2+1))
+    done
 
-while true; do
-    set_records
-    sleep "$interval"
-done
+    while true; do
+        set_records
+        sleep "$interval"
+    done
+}
+
+if [ "$1" = '--daemon' ]; then
+    # Deamonize and write PID to file
+    if touch "/var/run/$self.pid";
+    then
+        run_ddns &
+        echo $! > "/var/run/$self.pid"
+    else
+        >&2 echo 'unable to daemonize'
+        exit 2
+    fi
+else
+    # Run in foreground
+    run_ddns
+fi

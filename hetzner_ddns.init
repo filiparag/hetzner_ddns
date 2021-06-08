@@ -10,6 +10,5 @@ command="/usr/local/bin/${RC_SVCNAME}"
 pidfile="/var/run/${RC_SVCNAME}.pid"
 
 start() {
-	"$command" &
-    echo $! > "$pidfile"
+	"$command" --daemon
 }
