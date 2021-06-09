@@ -1,4 +1,6 @@
-**
+/*
 !Makefile
 !pkg-descr
 !.gitignore
+!files/
+!files/hetzner_ddns.in
