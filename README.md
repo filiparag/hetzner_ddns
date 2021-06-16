@@ -12,12 +12,12 @@ configuration and administration.
 
 Officially supported operating systems:
 
-- [Alpine Linux](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-r0.apk)
-- [Arch Linux](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-1-any.pkg.tar.xz)
-- [Debian / Ubuntu](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2_all.deb)
-- [Fedora / openSUSE](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-1.noarch.rpm)
-- [FreeBSD](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-freebsd.txz)
-- [NetBSD](https://github.com/filiparag/hetzner_ddns/releases/download/0.2.2/hetzner_ddns-0.2.2-netbsd.tgz)
+- Alpine Linux
+- Arch Linux ([AUR](https://aur.archlinux.org/packages/hetzner_ddns/))
+- Debian / Ubuntu
+- Fedora / openSUSE ([Copr](https://copr.fedorainfracloud.org/coprs/filiparag/hetzner_ddns/))
+- FreeBSD ([dns/hetzner_ddns](https://www.freshports.org/dns/hetzner_ddns/))
+- NetBSD
 
 Packages for the latest stable version can be found
 [here](https://github.com/filiparag/hetzner_ddns/releases/latest).
