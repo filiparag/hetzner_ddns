@@ -2,6 +2,11 @@
 
 self='hetzner_ddns'
 
+if [[ ! -z "$1" ]]
+then
+    self="${self}.$1"
+fi
+
 # Read variabels from configuration file
 if test -G "/usr/local/etc/$self.conf"; then
     . "/usr/local/etc/$self.conf"

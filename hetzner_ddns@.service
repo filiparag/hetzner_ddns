@@ -1,0 +1,28 @@
+[Unit]
+Description=Hetzner Dynamic DNS for %I
+Documentation=man:hetzner_ddns(1)
+After=network.target
+
+[Service]
+Type=simple
+User=daemon
+Group=root
+ExecStartPre=/usr/bin/touch /var/log/hetzner_ddns.%i.log
+ExecStartPre=/usr/bin/chown daemon:root /var/log/hetzner_ddns.%i.log
+ExecStart=/usr/local/bin/hetzner_ddns %i
+Restart=always
+RestartSec=10
+
+PermissionsStartOnly=true
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=read-only
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+MemoryDenyWriteExecute=yes
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target
