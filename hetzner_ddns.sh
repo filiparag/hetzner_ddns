@@ -5,6 +5,7 @@ self='hetzner_ddns'
 # Read variabels from configuration file
 if test -G "/usr/local/etc/$self.conf"; then
     . "/usr/local/etc/$self.conf"
+    records_escaped="$(echo "$records" | sed 's:\*:\\\*:g')"
 else
     >&2 echo 'unable to read configuration file'
     exit 78
@@ -70,7 +71,8 @@ get_record() {
 
 get_records() {
     # Get all record IDs
-    for n in $records; do
+    for n in $records_escaped; do
+        n="$(echo "$n" | sed 's:\\::')"
         if get_record "$n"; then
             records_ipv4="$records_ipv4$n=$record_ipv4 "
             records_ipv6="$records_ipv6$n=$record_ipv6 "
@@ -164,7 +166,8 @@ set_records() {
     # Get my public IP address
     if get_my_ip_addr; then
         # Update all records if possible
-        for n in $records; do
+        for n in $records_escaped; do
+            n="$(echo "$n" | sed 's:\\::')"
             record_ipv4="$(pick_record "$n" "$records_ipv4")"
             record_ipv6="$(pick_record "$n" "$records_ipv6")"
             if [ -n "$record_ipv4" ] || [ -n "$record_ipv6" ]; then
