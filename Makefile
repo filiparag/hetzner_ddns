@@ -21,6 +21,7 @@ netbsd-rc: hetzner_ddns.netbsd.rc
 systemd: hetzner_ddns.service
 	@mkdir -p $(prefix)/etc/systemd/system
 	@install -m 0644 -p hetzner_ddns.service $(prefix)/etc/systemd/system/hetzner_ddns.service
+	@install -m 0644 -p hetzner_ddns@.service $(prefix)/etc/systemd/system/hetzner_ddns@.service
 
 openrc: hetzner_ddns.init
 	@mkdir -p $(prefix)/etc/init.d
@@ -41,4 +42,5 @@ remove:
 		$(prefix)/usr/local/share/man/man1/hetzner_ddns.1.gz \
 		$(prefix)/usr/local/etc/rc.d/hetzner_ddns \
 		$(prefix)/etc/systemd/system/hetzner_ddns.service \
+		$(prefix)/etc/systemd/system/hetzner_ddns@.service \
 		$(prefix)/etc/init.d/hetzner_ddns
