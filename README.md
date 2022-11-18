@@ -69,13 +69,43 @@ records='homelab media vpn'
 
 To obtain an **API key**, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).
 
-**Prebuilt packages**
+### Configuration for prebuilt packages
 
 Default configuration location differs in prebuilt packages:
 
 - Linux distributions: `/etc/hetzner_ddns.conf`
 - FreeBSD: `/usr/local/etc/hetzner_ddns.conf`
 - NetBSD: `/usr/pkg/etc/hetzner_ddns.conf`
+
+### Manage records for multiple domains
+
+Currently, this utility supports management of one domain per daemon.
+If you have multiple domains, use CNAME records to point them to one
+the daemon will manage, as shown in the following example:
+
+```sh
+# Managed domain (master.tld)
+@		IN	A	    1.2.3.4
+@		IN	AAAA	1:2:3:4::
+
+# Other domain
+service		IN	CNAME	master.tld.
+```
+
+### Multiple daemon instances for **systemd**
+
+If your operting system relies on systemd, you can easily run
+multiple daemons as shown below:
+
+```ini
+# Create configuration file for foobar.tld domain
+sudo cp -p /usr/local/etc/hetzner_ddns.conf.sample /usr/local/etc/hetzner_ddns.foobar.conf
+
+# Modify created file to reflect your preferences
+
+# Enable and start foobar.tld's daemon
+sudo systemctl enable hetzner_ddns@foobar
+```
 
 ## Usage
 
