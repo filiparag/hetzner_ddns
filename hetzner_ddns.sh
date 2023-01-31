@@ -2,8 +2,7 @@
 
 self='hetzner_ddns'
 
-if [[ ! -z "$1" ]]
-then
+if ! [ -z "$1" ]; then
     self="${self}.$1"
 fi
 

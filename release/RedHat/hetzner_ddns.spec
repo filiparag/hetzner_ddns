@@ -33,4 +33,5 @@ make prefix=%{buildroot} install systemd
 /usr/share/man/man1/%{name}.1.gz
 /etc/%{name}.conf.sample
 /etc/systemd/system/%{name}.service
+/etc/systemd/system/%{name}@.service
 %config(noreplace) /etc/%{name}.conf

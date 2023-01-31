@@ -1,5 +1,5 @@
 .\" Manual for hetzner_ddns.
-.TH "hetzner_ddns" 1 "8 June 2021" "hetzner_ddns 0.2.2" "Hetzner DDNS Manual"
+.TH "hetzner_ddns" 1 "31 January 2023" "hetzner_ddns 0.2.3" "Hetzner DDNS Manual"
 .SH NAME
 .B hetzner_ddns
 \- Hetzner Dynamic DNS Daemon
