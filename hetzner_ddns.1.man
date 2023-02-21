@@ -1,12 +1,27 @@
 .\" Manual for hetzner_ddns.
-.TH "hetzner_ddns" 1 "31 January 2023" "hetzner_ddns 0.2.3" "Hetzner DDNS Manual"
+.TH "hetzner_ddns" 1 "21 February 2023" "hetzner_ddns 0.2.4" "Hetzner DDNS Manual"
 .SH NAME
 .B hetzner_ddns
 \- Hetzner Dynamic DNS Daemon
 .SH SYNOPSIS
-.B hetzner_ddns [--daemon]
+.B hetzner_ddns [--daemon] [CONFIG]
 .P
 This program should be run as a system service.
+.SH OPTIONS
+.HP
+.B -d, --daemon
+.br
+Detach from current shell and run as a deamon
+.HP
+.B -h, --help
+.br
+Print help and exit
+.HP
+.B CONFIG
+.br
+Use configuration file hetzner_ddns.\fICONFIG\fR.conf
+.br
+and log to file hetzner_ddns.\fICONFIG\fR.log
 .SH USAGE
 .SS Run on startup
 service hetzner_ddns
@@ -20,6 +35,8 @@ service hetzner_ddns
 .SS Runtime messages log file
 Runtime log is located at
 .I /var/log/hetzner_ddns.log 
+.SS Multiple daemon instances \fR(systemd only)
+systemctl <action> hetzner_ddns@\fICONFIG\fR
 .SH CONFIGURATION
 Configuration file is located at 
 .I /usr/local/etc/hetzner_ddns.conf
