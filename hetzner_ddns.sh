@@ -111,10 +111,10 @@ get_record_ip_addr() {
 get_my_ip_addr() {
     # Get current public IP address
     ipv4_cur="$(
-        curl 'http://ipv4.whatismyip.akamai.com/' 2>/dev/null
+        curl -4 'https://ip.hetzner.com/' 2>/dev/null
     )"
     ipv6_cur="$(
-        curl 'http://ipv6.whatismyip.akamai.com/' 2>/dev/null
+        curl -6 'https://ip.hetzner.com/' 2>/dev/null | sed 's/:$/:1/g'
     )"
     if [ -z "$ipv4_cur" ] && [ -z "$ipv6_cur" ]; then
         return 1

@@ -131,8 +131,3 @@ sudo service hetzner_ddns start/stop
 ```
 
 **Log file** is located at `/var/log/hetzner_ddns.log` 
-
-## Privacy notice
-
-This script relies on Akamai's [What's My IP](http://whatismyip.akamai.com/)
-service to retrieve public IP address.
