@@ -1,17 +1,27 @@
 #!/bin/sh
 
 self='hetzner_ddns'
+daemon=0
 
-if ! [ -z "$1" ]; then
-    self="${self}.$1"
-fi
+for arg in $(seq "$#"); do
+    param="$(eval "echo \$$arg")"
+    case "$param" in
+        '--daemon'|'-d')
+            daemon=1;;
+        '--help'|'-h')
+            man hetzner_ddns;
+            exit 0;;
+        *)
+            self="${self}.$param";;
+    esac
+done
 
 # Read variabels from configuration file
 if test -G "/usr/local/etc/$self.conf"; then
     . "/usr/local/etc/$self.conf"
     records_escaped="$(echo "$records" | sed 's:\*:\\\*:g')"
 else
-    >&2 echo 'unable to read configuration file'
+    >&2 echo "unable to read configuration file /usr/local/etc/$self.conf"
     exit 78
 fi
 
@@ -195,7 +205,7 @@ run_ddns() {
     done
 }
 
-if [ "$1" = '--daemon' ]; then
+if [ "$daemon" = '1' ]; then
     # Deamonize and write PID to file
     if touch "/var/run/$self.pid";
     then
