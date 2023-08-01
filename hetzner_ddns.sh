@@ -16,30 +16,70 @@ for arg in $(seq "$#"); do
     esac
 done
 
-# Read variabels from configuration file
-if test -G "/usr/local/etc/$self.conf"; then
-    . "/usr/local/etc/$self.conf"
-    records_escaped="$(echo "$records" | sed 's:\*:\\\*:g')"
-else
-    >&2 echo "unable to read configuration file /usr/local/etc/$self.conf"
-    exit 78
-fi
-
 # Check dependencies
 if ! command -v curl > /dev/null || \
    ! command -v awk > /dev/null || \
    ! command -v jq > /dev/null
 then
-    >&2 echo 'missing dependency'
+    >&2 echo 'Error: missing dependency'
     exit 1
 fi
 
 # Check logging support
 if ! touch "/var/log/$self.log";
 then
-    >&2 echo 'unable to open logfile'
+    >&2 echo "Error: unable to open log file /var/log/$self.log"
     exit 2
 fi
+
+read_configuration() {
+    # Read variabels from configuration file
+    if test -r "/usr/local/etc/$self.conf"; then
+        printf '[%s] Reading configuration from %s\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" "/usr/local/etc/$self.conf" \
+            | tee -a "/var/log/$self.log"
+        . "/usr/local/etc/$self.conf"
+        records_escaped="$(echo "$records" | sed 's:\*:\\\*:g')"
+    else
+        printf '[%s] Error: unable to read configuration file %s\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" "/usr/local/etc/$self.conf" | tee -a "/var/log/$self.log"
+        >&2 echo "Error: unable to read configuration file /usr/local/etc/$self.conf"
+        exit 78
+    fi
+
+    # Check configuration
+    if [ -z "$interval" ]; then
+        printf '[%s] Warning: interval is not set, defaulting to 60 seconds\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        interval=60
+    fi
+    if [ -z "$key" ]; then
+        printf '[%s] Error: API key is not set, unable to proceed\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        exit 78
+    fi
+    if [ -z "$domain" ]; then
+        printf '[%s] Error: Domain is not set, unable to proceed\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        exit 78
+    fi
+    if [ -z "$records" ]; then
+        printf '[%s] Warning: Records are not set, exiting cleanly\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        exit 0
+    fi
+}
+
+test_api_key() {
+    # Test API key validity
+    if curl "https://dns.hetzner.com/api/v1/zones" \
+        -H "Auth-API-Token: $key" 2>/dev/null | \
+        grep -q 'Invalid authentication credentials'; then
+        printf '[%s] Error: Invalid API key\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        exit 22
+    fi
+}
 
 get_zone() {
     # Get zone ID
@@ -50,10 +90,13 @@ get_zone() {
         awk "\$1==\"$domain\" {print \$2}"
     )"
     if [ -z "$zone" ]; then
+        printf '[%s] Error: Unable to fetch zone ID for domain %s\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" "$domain" | tee -a "/var/log/$self.log"
         return 1
     else
         printf '[%s] Zone for %s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
             "$domain" "$zone" | tee -a "/var/log/$self.log"
+        return 0
     fi
 }
 
@@ -80,21 +123,27 @@ get_record() {
             "${record_ipv4:-(missing)}" | tee -a "/var/log/$self.log"
         printf '[%s] IPv6 record for %s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1.$domain" \
             "${record_ipv6:-(missing)}" | tee -a "/var/log/$self.log"
+        return 0
     fi
 }
 
 get_records() {
     # Get all record IDs
-    for n in $records_escaped; do
-        n="$(echo "$n" | sed 's:\\::')"
-        if get_record "$n"; then
-            records_ipv4="$records_ipv4$n=$record_ipv4 "
-            records_ipv6="$records_ipv6$n=$record_ipv6 "
+    for current_record in $records_escaped; do
+        current_record="$(echo "$current_record" | sed 's:\\::')"
+        if get_record "$current_record"; then
+            records_ipv4="$records_ipv4$current_record=$record_ipv4 "
+            records_ipv6="$records_ipv6$current_record=$record_ipv6 "
         else
-            printf '[%s] Missing both records for %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-                "$n.$domain" | tee -a "/var/log/$self.log"
+            printf '[%s] Warning: Missing both A and AAAA records for %s\n' \
+                "$(date '+%Y-%m-%d %H:%M:%S')" "$current_record.$domain" | tee -a "/var/log/$self.log"
         fi
     done
+    if [ -z "$records_ipv4" ] && [ -z "$records_ipv6" ]; then
+        printf '[%s] Error: No applicable records found %s\n' \
+                "$(date '+%Y-%m-%d %H:%M:%S')" "$domain" | tee -a "/var/log/$self.log"
+        return 1
+    fi
 }
 
 get_record_ip_addr() {
@@ -113,6 +162,20 @@ get_record_ip_addr() {
             jq -r '.record.value'
         )"
     fi
+    if [ -n "$record_ipv4" ]; then
+        if [ -z "$ipv4_rec" ] || [ "$ipv4_rec" = 'null' ]; then
+            printf '[%s] Warning: Unable to fetch previous IPv4 address for %s\n' \
+                "$(date '+%Y-%m-%d %H:%M:%S')" "$current_record.$domain" | tee -a "/var/log/$self.log"
+            ipv4_rec=''
+        fi;
+    fi
+     if [ -n "$record_ipv6" ]; then
+        if [ -z "$ipv6_rec" ] || [ "$ipv6_rec" = 'null' ]; then
+            printf '[%s] Warning: Unable to fetch previous IPv6 address for %s\n' \
+                "$(date '+%Y-%m-%d %H:%M:%S')" "$current_record.$domain" | tee -a "/var/log/$self.log"
+            ipv6_rec=''
+        fi;
+    fi
     if [ -z "$ipv4_rec" ] && [ -z "$ipv6_rec" ]; then
         return 1
     fi
@@ -127,6 +190,8 @@ get_my_ip_addr() {
         curl -6 'https://ip.hetzner.com/' 2>/dev/null | sed 's/:$/:1/g'
     )"
     if [ -z "$ipv4_cur" ] && [ -z "$ipv6_cur" ]; then
+        printf '[%s] Error: Unable to fetch current self IP address\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
         return 1
     fi
 }
@@ -141,11 +206,11 @@ set_record() {
             \"value\": \"$ipv4_cur\",
             \"ttl\": $interval,
             \"type\": \"A\",
-            \"name\": \"$n\",
+            \"name\": \"$current_record\",
             \"zone_id\": \"$zone\"
             }" 1>/dev/null 2>/dev/null &&
         printf "[%s] Update IPv4 for %s: %s => %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$n.$domain" "$ipv4_rec" "$ipv4_cur" | tee -a "/var/log/$self.log"
+            "$current_record.$domain" "$ipv4_rec" "$ipv4_cur" | tee -a "/var/log/$self.log"
     fi
     if [ -n "$record_ipv6" ] && [ -n "$ipv6_cur" ] && [ "$ipv6_cur" != "$ipv6_rec" ]; then
         curl -X "PUT" "https://dns.hetzner.com/api/v1/records/$record_ipv6" \
@@ -155,11 +220,11 @@ set_record() {
             \"value\": \"$ipv6_cur\",
             \"ttl\": $interval,
             \"type\": \"AAAA\",
-            \"name\": \"$n\",
+            \"name\": \"$current_record\",
             \"zone_id\": \"$zone\"
             }" 1>/dev/null 2>/dev/null &&
         printf "[%s] Update IPv6 for %s: %s => %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$n.$domain" "$ipv6_rec" "$ipv6_cur" | tee -a "/var/log/$self.log"
+            "$current_record.$domain" "$ipv6_rec" "$ipv6_cur" | tee -a "/var/log/$self.log"
     fi
 }
 
@@ -180,10 +245,10 @@ set_records() {
     # Get my public IP address
     if get_my_ip_addr; then
         # Update all records if possible
-        for n in $records_escaped; do
-            n="$(echo "$n" | sed 's:\\::')"
-            record_ipv4="$(pick_record "$n" "$records_ipv4")"
-            record_ipv6="$(pick_record "$n" "$records_ipv6")"
+        for current_record in $records_escaped; do
+            current_record="$(echo "$current_record" | sed 's:\\::')"
+            record_ipv4="$(pick_record "$current_record" "$records_ipv4")"
+            record_ipv6="$(pick_record "$current_record" "$records_ipv6")"
             if [ -n "$record_ipv4" ] || [ -n "$record_ipv6" ]; then
                 get_record_ip_addr && set_record
             fi
@@ -195,9 +260,19 @@ run_ddns() {
     printf '[%s] Started Hetzner DDNS daemon\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
                 | tee -a "/var/log/$self.log"
 
+    read_configuration
+    test_api_key
+
     while ! get_zone || ! get_records; do
         sleep $((interval/2+1))
+        printf '[%s] Retrying to fetch zone and record data\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
+                | tee -a "/var/log/$self.log"
     done
+
+    printf '[%s] Configuration successful\n' \
+        "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+    printf '[%s] Watching for IP address and record changes\n' \
+        "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
 
     while true; do
         set_records
