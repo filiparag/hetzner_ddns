@@ -1,4 +1,4 @@
-@comment $NetBSD: PLIST,v 1.49 2021/01/01 00:00:00 filiparag Exp $
+@comment $NetBSD: PLIST,v 1.49 2023/08/01 16:30:34  filiparag Exp $
 bin/hetzner_ddns
 man/man1/hetzner_ddns.1
 share/examples/hetzner_ddns/hetzner_ddns.conf
