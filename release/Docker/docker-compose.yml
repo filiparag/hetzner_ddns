@@ -1,0 +1,6 @@
+services:
+  hetzner-ddns:
+    image: filiparag/hetzner_ddns
+    restart: unless-stopped
+    volumes:
+      - /etc/hetzner_ddns.conf:/etc/hetzner_ddns.conf:ro

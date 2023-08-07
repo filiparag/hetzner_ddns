@@ -15,8 +15,9 @@ Officially supported operating systems:
 - Alpine Linux
 - Arch Linux ([AUR](https://aur.archlinux.org/packages/hetzner_ddns/))
 - Debian / Ubuntu
+- Docker ([Docker Hub](https://hub.docker.com/r/filiparag/hetzner_ddns))
 - Fedora / openSUSE ([Copr](https://copr.fedorainfracloud.org/coprs/filiparag/hetzner_ddns/))
-- FreeBSD ([dns/hetzner_ddns](https://www.freshports.org/dns/hetzner_ddns/))
+- FreeBSD ([Ports tree](https://www.freshports.org/dns/hetzner_ddns/))
 - NetBSD
 
 Packages for the latest stable version can be found
@@ -130,4 +131,4 @@ sudo systemctl start/stop hetzner_ddns
 sudo service hetzner_ddns start/stop
 ```
 
-**Log file** is located at `/var/log/hetzner_ddns.log` 
+**Log file** is located at `/var/log/hetzner_ddns.log`
