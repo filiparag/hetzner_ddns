@@ -95,7 +95,7 @@ service		IN	CNAME	master.tld.
 
 ### Multiple daemon instances for **systemd**
 
-If your operting system relies on systemd, you can easily run
+If your operating system relies on systemd, you can easily run
 multiple daemons as shown below:
 
 ```ini
