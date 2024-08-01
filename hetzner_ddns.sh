@@ -114,12 +114,14 @@ get_record() {
         record_ipv4="$(
             echo "$records_json" | \
             jq -r '.records[] | .name + " " + .type + " " + .id' | \
-            awk "\$1==\"$1\" && \$2==\"A\" {print \$3}"
+            awk -v r="$1" -v d="$domain" \
+                '($1==r || $1==sprintf("%s.%s",r,d)) && $2=="A" {print $3 }'
         )"
         record_ipv6="$(
             echo "$records_json" | \
             jq -r '.records[] | .name + " " + .type + " " + .id' | \
-            awk "\$1==\"$1\" && \$2==\"AAAA\" {print \$3}"
+            awk -v r="$1" -v d="$domain" \
+                '($1==r || $1==sprintf("%s.%s",r,d)) && $2=="AAAA" {print $3 }'
         )"
     fi
     if [ -z "$record_ipv4" ] && [ -z "$record_ipv6" ]; then
