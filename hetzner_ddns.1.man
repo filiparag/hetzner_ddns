@@ -1,5 +1,5 @@
 .\" Manual for hetzner_ddns.
-.TH "hetzner_ddns" 1 "1 August 2023" "hetzner_ddns 0.2.4" "Hetzner DDNS Manual"
+.TH "hetzner_ddns" 1 "2 August 2024" "hetzner_ddns 0.2.5" "Hetzner DDNS Manual"
 .SH NAME
 .B hetzner_ddns
 \- Hetzner Dynamic DNS Daemon
@@ -16,6 +16,10 @@ Detach from current shell and run as a deamon
 .B -h, --help
 .br
 Print help and exit
+.HP
+.B -v, --version
+.br
+Print version and exit
 .HP
 .B CONFIG
 .br

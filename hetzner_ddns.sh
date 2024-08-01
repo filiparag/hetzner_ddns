@@ -1,6 +1,7 @@
 #!/bin/sh
 
 self='hetzner_ddns'
+version='0.2.5'
 daemon=0
 
 for arg in $(seq "$#"); do
@@ -8,6 +9,9 @@ for arg in $(seq "$#"); do
     case "$param" in
         '--daemon'|'-d')
             daemon=1;;
+        '--version'|'-v')
+            printf '%s %s\n' "$self" "$version"
+            exit 0;;
         '--help'|'-h')
             man hetzner_ddns;
             exit 0;;
