@@ -102,16 +102,18 @@ get_zone() {
 
 get_record() {
     # Get record IDs
+    records_json="$(
+        curl "https://dns.hetzner.com/api/v1/records?zone_id=$zone" \
+            -H "Auth-API-Token: $key" 2>/dev/null
+    )"
     if [ -n "$zone" ]; then
         record_ipv4="$(
-            curl "https://dns.hetzner.com/api/v1/records?zone_id=$zone" \
-                -H "Auth-API-Token: $key" 2>/dev/null | \
+            echo "$records_json" | \
             jq -r '.records[] | .name + " " + .type + " " + .id' | \
             awk "\$1==\"$1\" && \$2==\"A\" {print \$3}"
         )"
         record_ipv6="$(
-            curl "https://dns.hetzner.com/api/v1/records?zone_id=$zone" \
-                -H "Auth-API-Token: $key" 2>/dev/null | \
+            echo "$records_json" | \
             jq -r '.records[] | .name + " " + .type + " " + .id' | \
             awk "\$1==\"$1\" && \$2==\"AAAA\" {print \$3}"
         )"
