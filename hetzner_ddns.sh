@@ -42,6 +42,7 @@ read_configuration() {
         printf '[%s] Reading configuration from %s\n' \
             "$(date '+%Y-%m-%d %H:%M:%S')" "/usr/local/etc/$self.conf" \
             | tee -a "/var/log/$self.log"
+        # shellcheck disable=SC1090
         . "/usr/local/etc/$self.conf"
         records_escaped="$(echo "$records" | sed 's:\*:\\\*:g')"
     else
