@@ -92,7 +92,7 @@ get_zone() {
         curl "https://dns.hetzner.com/api/v1/zones" \
             -H "Auth-API-Token: $key" 2>/dev/null | \
         jq -r '.zones[] | .name + " " + .id' | \
-        awk "\$1==\"$domain\" {print \$2}"
+        awk -v d="$domain" '$1==d {print $2}'
     )"
     if [ -z "$zone" ]; then
         printf '[%s] Error: Unable to fetch zone ID for domain %s\n' \
@@ -107,10 +107,6 @@ get_zone() {
 
 get_record() {
     # Get record IDs
-    records_json="$(
-        curl "https://dns.hetzner.com/api/v1/records?zone_id=$zone" \
-            -H "Auth-API-Token: $key" 2>/dev/null
-    )"
     if [ -n "$zone" ]; then
         record_ipv4="$(
             echo "$records_json" | \
@@ -138,6 +134,10 @@ get_record() {
 
 get_records() {
     # Get all record IDs
+    records_json="$(
+        curl "https://dns.hetzner.com/api/v1/records?zone_id=$zone" \
+            -H "Auth-API-Token: $key" 2>/dev/null
+    )"
     for current_record in $records_escaped; do
         current_record="$(echo "$current_record" | sed 's:\\::')"
         if get_record "$current_record"; then
