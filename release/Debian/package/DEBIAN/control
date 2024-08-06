@@ -1,5 +1,5 @@
 Package: hetzner-ddns
-Version: 0.2.4
+Version: 0.2.5
 Maintainer: Filip Parag <filip@parag.rs>
 Description: Hetzner Dynamic DNS Daemon
 Section: net

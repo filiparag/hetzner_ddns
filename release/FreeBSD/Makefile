@@ -1,18 +1,18 @@
-# Created by: Filip Parag <filip@parag.rs>
-
 PORTNAME=	hetzner_ddns
-DISTVERSION=	0.2.4
+DISTVERSION=	0.2.5
+PORTREVISION=	0
 CATEGORIES=	dns
 
 MAINTAINER=	filip@parag.rs
 COMMENT=	Hetzner Dynamic DNS Daemon
+WWW=		https://github.com/filiparag/hetzner_ddns
 
 LICENSE=	BSD2CLAUSE
 
 RUN_DEPENDS=	jq:textproc/jq \
 		curl:ftp/curl
 
-NO_ARCH=    	yes
+NO_ARCH=	yes
 NO_BUILD=	yes
 
 USE_GITHUB=	yes
@@ -28,7 +28,7 @@ do-install:
 	${INSTALL_SCRIPT} ${WRKSRC}/${PORTNAME}.sh \
 		${STAGEDIR}${PREFIX}/bin/${PORTNAME}
 	${INSTALL_MAN} ${WRKSRC}/${PORTNAME}.1.man \
-		${STAGEDIR}${MANPREFIX}/share/man/man1/${PORTNAME}.1
+		${STAGEDIR}${PREFIX}/share/man/man1/${PORTNAME}.1
 	${INSTALL_DATA} ${WRKSRC}/${PORTNAME}.conf ${STAGEDIR}${PREFIX}/etc/${PORTNAME}.conf.sample
 
 .include <bsd.port.mk>
