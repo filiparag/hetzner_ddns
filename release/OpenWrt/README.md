@@ -18,13 +18,7 @@ git clone https://git.openwrt.org/openwrt/openwrt.git source
 git checkout <version tag> # i. e. v23.05.5
 make distclean
 ```
-3. Now assuming the following directory structure for the next steps:
-```shell
-.                 # this is your ${YOUR_ROOT_WORKING_DIR}
-├── hetzner_ddns  # hetzner_ddns repo
-└── openwrt       # openwrt repo
-```
-4. Create toolchain for cross-compiling (short summary, for more information follow links in "Sources of information"):
+3. Create toolchain for cross-compiling (short summary, for more information follow links in "Sources of information"):
 ```shell
 # update to newest feeds
 cd openwrt/source
@@ -36,8 +30,15 @@ make menuconfig
 # add additional binaries to $PATH variable
 export PATH=/${YOUR_ROOT_WORKING_DIR}/openwrt/source/staging_dir/host/bin:$PATH
 ```
-5. Prepare `mypackages` directory at `${YOUR_ROOT_WORKING_DIR}` with `mkdir -p mypackages/Network/hetzner_ddns` 
-6. Copy files into package directory `cp hetzner_ddns/release/OpenWrt/* mypackages/Network/hetzner_ddns`
+4. Prepare `mypackages` directory at `${YOUR_ROOT_WORKING_DIR}` with `mkdir -p mypackages/Network/hetzner_ddns`
+5. Directory structure looks like this now:
+```shell
+.                 # this is your ${YOUR_ROOT_WORKING_DIR}
+├── hetzner_ddns  # hetzner_ddns repo
+├── mypackages    # package build directory
+└── openwrt       # openwrt repo
+```
+6. Copy OpenWrt release files into package directory `cp hetzner_ddns/release/OpenWrt/* mypackages/Network/hetzner_ddns`
 7. Create a new `openwrt/source/feeds.conf` for the *hetzner_ddns* package and update feeds
 ```shell
 # add hetzner_ddns to feed
@@ -46,8 +47,11 @@ echo "src-link mypackages ${YOUR_ROOT_WORKING_DIR}/mypackages/Network/hetzner_dd
 # update feeds with your package
 ./scripts/feeds update mypackages
 ./scripts/feeds install -a -p mypackages
+
+# choose Network -> hetzner_ddns to compile in menuconfig
+make menuconfig
 ```
-8. Build package `make -j$(nproc) package/hetzner_ddns/compile` in `openwrt/source`
+8. Build package `make -j$(nproc) package/hetzner_ddns/compile` within `openwrt/source` directory
 9. Copy the created package to your router and install it on OpenWrt with `opkg install hetzner_ddns_*.ipk`
 
 

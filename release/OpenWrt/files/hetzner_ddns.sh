@@ -1,1 +1,0 @@
-../../../hetzner_ddns.sh
