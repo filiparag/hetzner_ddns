@@ -15,22 +15,22 @@ for arg in $(seq "$#"); do
         '--help'|'-h')
             # man usually not available on OpenWrt (too big)
             # use short help string in that case
-            if ! command -v man > /dev/null
-            then
-                printf '%s\n\n%s\n\n' "hetzner_dns 0.2.5 (2 August 2024) - Hetzner Dynamic DNS Daemon" "Usage hetzner_dns.sh [--daemon] [CONFIG]"
-                printf '%s\n' "This program runs as system service /etc/init.d/hetzner_ddns on OpenWrt."
-                printf '%s\n' "             -h, --help     Print help and exit"
-                printf '%s\n' "             -v, --version  Print version and exit"
-                printf '%s\n\n' "             -d, --daemon Detach from current shell and run as a deamon"
-                printf '%s\n' "Configuration file is located at /usr/local/etc/hetzner_ddns.conf"
-                printf '%s\n' "   interval='60'                           # Seconds between updates / TTL value"
-                printf '%s\n' "   key='********************************'  # Hetzner DNS API key"
-                printf '%s\n' "   domain='example.com'                    # Top level domain name"
-                printf '%s\n' "   records='homelab media vpn'             # Space separated host subdomains (@ for domain itself)"
-                printf '%s\n' "Control service with: service hetzner_ddns status|start|stop|restart after specifying the config"
-            else
-                man hetzner_ddns;
-            fi
+	    if ! command -v man > /dev/null; then
+		echo "${self} ${version} - Hetzner Dynamic DNS Daemon
+Usage hetzner_ddns.sh [--daemon] [CONFIG]
+This program runs as system service /etc/init.d/hetzner_ddns on OpenWrt.
+                -h, --help     Print help and exit
+                -v, --version  Print version and exit
+                -d, --daemon   Detach from current shell and run as a deamon
+Configuration file is located at /usr/local/etc/hetzner_ddns.conf
+    interval='60'                           # Seconds between updates / TTL value
+    key='********************************'  # Hetzner DNS API key
+    domain='example.com'                    # Top level domain name
+    records='homelab media vpn'             # Space separated host subdomains (@ for domain itself)
+Control service with: service hetzner_ddns status|start|stop|restart after specifying the config"
+	    else
+		man hetzner_ddns;
+	    fi
             exit 0;;
         *)
             self="${self}.$param";;
