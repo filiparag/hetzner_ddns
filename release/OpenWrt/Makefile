@@ -32,6 +32,11 @@ It features support for multiple subdomain records with painless configuration a
 Please see https://github.com/filiparag/hetzner_ddns/README.md for further information.
 endef
 
+define Package/$(PKG_NAME)/conffiles
+	/etc/config/hetzner_ddns.conf
+endef
+
+
 define Build/Prepare
 	$(call Build/Prepare/Default)
 endef
@@ -42,7 +47,7 @@ endef
 define Build/Compile
 endef
 
-define Package/hetzner_ddns/install
+define Package/$(PKG_NAME)/install
 	# copy shell script and conf as preparation
 	cp $(PKG_BUILD_DIR)/$(PKG_NAME).sh ./files/
 	cp $(PKG_BUILD_DIR)/$(PKG_NAME).conf ./files/
@@ -59,6 +64,26 @@ define Package/hetzner_ddns/install
 
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./files/hetzner_ddns.conf $(1)/etc/config/hetzner_ddns.conf
+endef
+
+define Package/$(PKG_NAME)/prerm
+	# first stop service and make sure command does not fail
+	echo "Stopping hetzner_ddns service..."
+	service hetzner_ddns stop || true
+
+	# remove pid file just in case it is still here
+	if [ -f /var/run/hetzner_ddns.pid ]
+	then
+		echo "Cleaning up /var/run/hetzner_ddns.pid..."
+		rm /var/run/hetzner_ddns.pid
+	fi
+
+	# cleanup log file
+	if [ -f /var/log/hetzner_ddns.log ]
+	then
+		echo "Cleaning up /var/log/hetzner_ddns.log..."
+		rm /var/log/hetzner_ddns.log
+	fi
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
