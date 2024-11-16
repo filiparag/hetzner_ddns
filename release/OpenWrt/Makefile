@@ -1,6 +1,6 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=hetzner_ddns
+PKG_NAME:=hetzner-ddns
 PKG_VERSION:=0.2.5
 PKG_RELEASE:=1
 PKG_LICENSE:=BSD-2-Clause-license
@@ -9,7 +9,7 @@ PKG_MAINTAINER:=Filip Parag
 # clone sources
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/filiparag/hetzner_ddns.git
-PKG_SOURCE_VERSION:=master
+PKG_SOURCE_VERSION:=0.2.5
 
 # define src variables
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
@@ -48,9 +48,11 @@ define Build/Compile
 endef
 
 define Package/$(PKG_NAME)/install
-	# copy shell script and conf as preparation
-	cp $(PKG_BUILD_DIR)/$(PKG_NAME).sh ./files/
-	cp $(PKG_BUILD_DIR)/$(PKG_NAME).conf ./files/
+	# copy shell script, init.d file and conf as preparation
+	mkdir -p files
+	cp $(PKG_BUILD_DIR)/hetzner_ddns.sh ./files/
+	cp $(PKG_BUILD_DIR)/hetzner_ddns.conf ./files/
+	cp $(PKG_BUILD_DIR)/hetzner_ddns ./files/
 
 	# modify conf dir to match openwrt defaults /etc/config
 	sed -i 's|/usr/local/etc|/etc/config|g' ./files/$(PKG_NAME).sh
