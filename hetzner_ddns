@@ -5,7 +5,7 @@ START=99
 USE_PROCD=1
 
 start_service() {
-         procd_open_instance [hetzner-ddns]
+         procd_open_instance [hetzner_ddns]
          procd_set_param command /usr/bin/hetzner_ddns -d /etc/config/hetzner_ddns.conf
 
          # respawn automatically if something died, be careful if you have an alternative process supervisor
