@@ -19,6 +19,7 @@ Officially supported operating systems:
 - Fedora / openSUSE ([Copr](https://copr.fedorainfracloud.org/coprs/filiparag/hetzner_ddns/))
 - FreeBSD ([Ports tree](https://www.freshports.org/dns/hetzner_ddns/))
 - NetBSD
+- OpenWrt
 
 Packages for the latest stable version can be found
 [here](https://github.com/filiparag/hetzner_ddns/releases/latest).
@@ -48,6 +49,9 @@ sudo make netbsd-rc
 
 # OpenRC service
 sudo make openrc
+
+# OpenWrt procd service
+sudo make openwrt-procd
 ```
 
 ## Configuration
@@ -77,6 +81,7 @@ Default configuration location differs in prebuilt packages:
 - Linux distributions: `/etc/hetzner_ddns.conf`
 - FreeBSD: `/usr/local/etc/hetzner_ddns.conf`
 - NetBSD: `/usr/pkg/etc/hetzner_ddns.conf`
+- OpenWrt: `/etc/config/hetzner_ddns.conf`
 
 ### Manage records for multiple domains
 
@@ -120,6 +125,9 @@ sudo service hetzner_ddns enable
 
 # OpenRC
 sudo rc-update add hetzner_ddns
+
+# OpenWrt
+service hetzner_ddns enable
 ```
 
 **Start/Stop**
@@ -129,6 +137,9 @@ sudo systemctl start/stop hetzner_ddns
 
 # FreeBSD, NetBSD and OpenRC
 sudo service hetzner_ddns start/stop
+
+# OpenWrt
+service hetzner_ddns start/stop
 ```
 
 **Log file** is located at `/var/log/hetzner_ddns.log`
