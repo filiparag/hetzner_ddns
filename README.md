@@ -51,7 +51,7 @@ sudo make netbsd-rc
 sudo make openrc
 
 # OpenWrt procd service
-sudo make openwrt-procd
+sudo make openwrt-rc
 ```
 
 ## Configuration
@@ -120,14 +120,11 @@ sudo systemctl enable hetzner_ddns@foobar
 # systemd
 sudo systemctl enable hetzner_ddns
 
-# FreeBSD and NetBSD
+# FreeBSD, NetBSD and OpenWrt
 sudo service hetzner_ddns enable
 
 # OpenRC
 sudo rc-update add hetzner_ddns
-
-# OpenWrt
-service hetzner_ddns enable
 ```
 
 **Start/Stop**
@@ -135,11 +132,8 @@ service hetzner_ddns enable
 # systemd
 sudo systemctl start/stop hetzner_ddns
 
-# FreeBSD, NetBSD and OpenRC
+# FreeBSD, NetBSD, OpenRC and OpenWrt
 sudo service hetzner_ddns start/stop
-
-# OpenWrt
-service hetzner_ddns start/stop
 ```
 
 **Log file** is located at `/var/log/hetzner_ddns.log`
