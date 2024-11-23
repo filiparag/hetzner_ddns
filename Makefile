@@ -27,6 +27,10 @@ openrc: hetzner_ddns.init
 	@mkdir -p $(prefix)/etc/init.d
 	@install -m 0755 -p hetzner_ddns.init $(prefix)/etc/init.d/hetzner_ddns
 
+openwrt-rc: hetzner_ddns.openwrt.rc
+	@mkdir -p $(prefix)/etc/init.d
+	@install -m 0755 -p hetzner_ddns.openwrt.rc $(prefix)/etc/init.d/hetzner_ddns
+
 docs: hetzner_ddns.1.man
 	@mkdir -p $(prefix)/usr/local/share/man/man1
 	@install -m 0644 -p hetzner_ddns.1.man $(prefix)/usr/local/share/man/man1/hetzner_ddns.1
