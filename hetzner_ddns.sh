@@ -75,18 +75,50 @@ read_configuration() {
             "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
         interval=60
     fi
+    if ! echo "$interval" | grep -qE '^[0-9]+$'; then
+        printf '[%s] Error: interval value is invalid, exiting\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        exit 74
+    fi
     if [ -z "$key" ]; then
         printf '[%s] Error: API key is not set, unable to proceed\n' \
             "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
         exit 78
     fi
     if [ -z "$domain" ]; then
-        printf '[%s] Error: Domain is not set, unable to proceed\n' \
+        printf '[%s] Error: domain is not set, unable to proceed\n' \
             "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
         exit 78
     fi
     if [ -z "$records" ]; then
-        printf '[%s] Warning: Records are not set, exiting cleanly\n' \
+        printf '[%s] Warning: records are not set, exiting cleanly\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        exit 0
+    fi
+    if [ -z "$ipv4" ]; then
+        printf '[%s] Info: update of A records not set, enabling by default\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        ipv4=true
+    fi
+    if ! echo "$ipv4" | grep -qE '^true|false$'; then
+        printf '[%s] Error: update of A records flag is invalid, exiting\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        exit 74
+    fi
+    if [ -z "$ipv6" ]; then
+        printf '[%s] Info: update of AAAA records not set, enabling by default\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        ipv6=true
+    fi
+    if ! echo "$ipv4" | grep -qE '^true|false$'; then
+        printf '[%s] Error: update of AAAA records flag is invalid, exiting\n' \
+            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
+        exit 74
+    fi
+
+    # Test if updating is disabled
+    if [ "$ipv4" = 'false' ] && [ "$ipv6" = 'false' ]; then
+        printf '[%s] Updating of both A and AAAA records is disabled, exiting cleanly\n' \
             "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
         exit 0
     fi
@@ -209,12 +241,16 @@ get_record_ip_addr() {
 
 get_my_ip_addr() {
     # Get current public IP address
-    ipv4_cur="$(
-        curl -4 'https://ip.hetzner.com/' 2>/dev/null
-    )"
-    ipv6_cur="$(
-        curl -6 'https://ip.hetzner.com/' 2>/dev/null | sed 's/:$/:1/g'
-    )"
+    if [ "$ipv4" = 'true' ]; then
+        ipv4_cur="$(
+            curl -4 'https://ip.hetzner.com/' 2>/dev/null
+        )"
+    fi
+    if [ "$ipv6" = 'true' ]; then
+        ipv6_cur="$(
+            curl -6 'https://ip.hetzner.com/' 2>/dev/null | sed 's/:$/:1/g'
+        )"
+    fi
     if [ -z "$ipv4_cur" ] && [ -z "$ipv6_cur" ]; then
         printf '[%s] Error: Unable to fetch current self IP address\n' \
             "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
@@ -224,7 +260,7 @@ get_my_ip_addr() {
 
 set_record() {
     # Update record if IP address has changed
-    if [ -n "$record_ipv4" ] && [ -n "$ipv4_cur" ] && [ "$ipv4_cur" != "$ipv4_rec" ]; then
+    if [ "$ipv4" = 'true' ] && [ -n "$record_ipv4" ] && [ -n "$ipv4_cur" ] && [ "$ipv4_cur" != "$ipv4_rec" ]; then
         curl -X "PUT" "https://dns.hetzner.com/api/v1/records/$record_ipv4" \
             -H 'Content-Type: application/json' \
             -H "Auth-API-Token: $key" \
@@ -238,7 +274,7 @@ set_record() {
         printf "[%s] Update IPv4 for %s: %s => %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
             "$current_record.$domain" "$ipv4_rec" "$ipv4_cur" | tee -a "/var/log/$self.log"
     fi
-    if [ -n "$record_ipv6" ] && [ -n "$ipv6_cur" ] && [ "$ipv6_cur" != "$ipv6_rec" ]; then
+    if [ "$ipv6" = 'true' ] && [ -n "$record_ipv6" ] && [ -n "$ipv6_cur" ] && [ "$ipv6_cur" != "$ipv6_rec" ]; then
         curl -X "PUT" "https://dns.hetzner.com/api/v1/records/$record_ipv6" \
             -H 'Content-Type: application/json' \
             -H "Auth-API-Token: $key" \
