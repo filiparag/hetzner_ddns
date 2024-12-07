@@ -1,5 +1,5 @@
 .\" Manual for hetzner_ddns.
-.TH "hetzner_ddns" 1 "2 August 2024" "hetzner_ddns 0.2.5" "Hetzner DDNS Manual"
+.TH "hetzner_ddns" 1 "8 December 2024" "hetzner_ddns 0.2.6" "Hetzner DDNS Manual"
 .SH NAME
 .B hetzner_ddns
 \- Hetzner Dynamic DNS Daemon
@@ -66,3 +66,13 @@ Top level domain name
 Space separated host subdomains (
 .B @
 for the domain itself )
+.HP
+.B ipv4
+<true|false>
+.br
+Enable updating A records (IPv4)
+.HP
+.B ipv6
+<true|false>
+.br
+Enable updating AAAA records (IPv6)

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 self='hetzner_ddns'
-version='0.2.5'
+version='0.2.6'
 daemon=0
 
 for arg in $(seq "$#"); do
@@ -13,24 +13,42 @@ for arg in $(seq "$#"); do
             printf '%s %s\n' "$self" "$version"
             exit 0;;
         '--help'|'-h')
-            # man usually not available on OpenWrt (too big)
-            # use short help string in that case
-	    if ! command -v man > /dev/null; then
 		echo "${self} ${version} - Hetzner Dynamic DNS Daemon
-Usage hetzner_ddns.sh [--daemon] [CONFIG]
-This program runs as system service /etc/init.d/hetzner_ddns on OpenWrt.
-                -h, --help     Print help and exit
-                -v, --version  Print version and exit
-                -d, --daemon   Detach from current shell and run as a deamon
-Configuration file is located at /usr/local/etc/hetzner_ddns.conf
-    interval='60'                           # Seconds between updates / TTL value
-    key='********************************'  # Hetzner DNS API key
-    domain='example.com'                    # Top level domain name
-    records='homelab media vpn'             # Space separated host subdomains (@ for domain itself)
-Control service with: service hetzner_ddns status|start|stop|restart after specifying the config"
-	    else
-		man hetzner_ddns;
-	    fi
+
+Usage:
+
+    Run on startup
+        service hetzner_ddns enable
+
+    Start
+        service hetzner_ddns start
+
+    Stop
+        service hetzner_ddns stop
+
+    Runtime messages log file
+        Runtime log is located at /var/log/hetzner_ddns.log
+
+    Multiple daemon instances (systemd only)
+        systemctl <action> hetzner_ddns@CONFIG
+
+
+Options:
+
+    -d, --daemon    Detach from current shell and run as a deamon
+    -h, --help      Print help and exit
+    -v, --version   Print version and exit
+
+
+Configuration: /usr/local/etc/hetzner_ddns.conf
+
+    interval <seconds>      Seconds between updates
+    key <32 character key>  Hetzner DNS API key
+    domain <domain name>    Top level domain name
+    records <hostname>...   Space separated host subdomains
+    ipv4 <true|false>       Enable updating A records
+    ipv6 <true|false>       Enable updating AAAA records
+"
             exit 0;;
         *)
             self="${self}.$param";;

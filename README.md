@@ -1,7 +1,7 @@
 # Hetzner Dynamic DNS Daemon
 
 A simple daemon to continuously update Hetzner DNS
-*A* and *AAAA* records for your server with a dynamic IP address.
+_A_ and _AAAA_ records for your server with a dynamic IP address.
 
 It features support for multiple subdomain records with painless
 configuration and administration.
@@ -70,6 +70,12 @@ domain='example.com'
 
 # Space separated host subdomains (@ for domain itself)
 records='homelab media vpn'
+
+# Enable updating A records (IPv4)
+ipv4=true
+
+# Enable updating AAAA records (IPv6)
+ipv6=true
 ```
 
 To obtain an **API key**, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).
@@ -116,6 +122,7 @@ sudo systemctl enable hetzner_ddns@foobar
 ## Usage
 
 **Run on startup**
+
 ```ini
 # systemd
 sudo systemctl enable hetzner_ddns
@@ -128,6 +135,7 @@ sudo rc-update add hetzner_ddns
 ```
 
 **Start/Stop**
+
 ```ini
 # systemd
 sudo systemctl start/stop hetzner_ddns
