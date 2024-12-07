@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hetzner-ddns
-PKG_VERSION:=0.2.5
+PKG_VERSION:=0.2.6
 PKG_RELEASE:=1
 PKG_LICENSE:=BSD-2-Clause-license
 PKG_MAINTAINER:=Filip Parag
@@ -9,7 +9,7 @@ PKG_MAINTAINER:=Filip Parag
 # clone sources
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/filiparag/hetzner_ddns.git
-PKG_SOURCE_VERSION:=0.2.5
+PKG_SOURCE_VERSION:=0.2.6
 
 # define src variables
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)

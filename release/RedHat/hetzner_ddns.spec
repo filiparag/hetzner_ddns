@@ -1,5 +1,5 @@
 Name:           hetzner_ddns
-Version:        0.2.5
+Version:        0.2.6
 Release:        1%{?dist}
 Summary:        Hetzner Dynamic DNS Daemon
 BuildArch:      noarch
