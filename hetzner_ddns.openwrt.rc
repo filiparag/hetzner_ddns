@@ -4,7 +4,22 @@
 START=99
 USE_PROCD=1
 
+_LOG_FILE=/var/log/hetzner_ddns.log
+_PID_FILE=/var/run/hetzner_ddns.pid
+
+fix_permissions() {
+         touch "${_LOG_FILE}"
+         touch "${_PID_FILE}"
+
+         chown nobody:nogroup "${_LOG_FILE}"
+         chown nobody:nogroup "${_PID_FILE}"
+
+         chmod u+w "${_LOG_FILE}"
+         chmod u+w "${_PID_FILE}"
+}
+
 start_service() {
+         fix_permissions
          procd_open_instance [hetzner_ddns]
          procd_set_param command /usr/bin/hetzner_ddns -d /etc/config/hetzner_ddns.conf
 
