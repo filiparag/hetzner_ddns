@@ -65,7 +65,7 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_BIN) ./files/hetzner_ddns.openwrt.rc $(1)/etc/init.d/hetzner_ddns
 
 	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_CONF) ./files/hetzner_ddns.conf $(1)/etc/config/hetzner_ddns.conf
+	$(INSTALL_DATA) ./files/hetzner_ddns.conf $(1)/etc/config/hetzner_ddns.conf
 endef
 
 define Package/$(PKG_NAME)/prerm
