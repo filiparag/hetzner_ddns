@@ -50,7 +50,7 @@ endef
 define Package/$(PKG_NAME)/install
 	# copy shell script, init.d file and conf as preparation
 	mkdir -p files
-	cp $(PKG_BUILD_DIR)/hetzner_ddns.sh ./files/
+	cp $(PKG_BUILD_DIR)/hetzner_ddns.sh ./files/hetzner_ddns
 	cp $(PKG_BUILD_DIR)/hetzner_ddns.conf ./files/
 	cp $(PKG_BUILD_DIR)/hetzner_ddns.openwrt.rc ./files/
 
@@ -59,7 +59,7 @@ define Package/$(PKG_NAME)/install
 
 	# install shell script, conf and service
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) ./files/hetzner_ddns.sh $(1)/usr/bin
+	$(INSTALL_BIN) ./files/hetzner_ddns $(1)/usr/bin
 
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/hetzner_ddns.openwrt.rc $(1)/etc/init.d/hetzner_ddns
