@@ -55,7 +55,7 @@ define Package/$(PKG_NAME)/install
 	cp $(PKG_BUILD_DIR)/hetzner_ddns.openwrt.rc ./files/
 
 	# modify conf dir to match openwrt defaults /etc/config
-	sed -i 's|/usr/local/etc|/etc/config|g' ./files/hetzner_ddns.sh
+	sed -i 's|/usr/local/etc|/etc/config|g' ./files/hetzner_ddns
 
 	# install shell script, conf and service
 	$(INSTALL_DIR) $(1)/usr/bin
