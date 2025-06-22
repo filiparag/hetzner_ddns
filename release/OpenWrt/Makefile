@@ -50,22 +50,22 @@ endef
 define Package/$(PKG_NAME)/install
 	# copy shell script, init.d file and conf as preparation
 	mkdir -p files
-	cp $(PKG_BUILD_DIR)/hetzner_ddns.sh ./files/
+	cp $(PKG_BUILD_DIR)/hetzner_ddns.sh ./files/hetzner_ddns
 	cp $(PKG_BUILD_DIR)/hetzner_ddns.conf ./files/
 	cp $(PKG_BUILD_DIR)/hetzner_ddns.openwrt.rc ./files/
 
 	# modify conf dir to match openwrt defaults /etc/config
-	sed -i 's|/usr/local/etc|/etc/config|g' ./files/hetzner_ddns.sh
+	sed -i 's|/usr/local/etc|/etc/config|g' ./files/hetzner_ddns
 
 	# install shell script, conf and service
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) ./files/hetzner_ddns.sh $(1)/usr/bin
+	$(INSTALL_BIN) ./files/hetzner_ddns $(1)/usr/bin
 
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/hetzner_ddns.openwrt.rc $(1)/etc/init.d/hetzner_ddns
 
 	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_CONF) ./files/hetzner_ddns.conf $(1)/etc/config/hetzner_ddns.conf
+	$(INSTALL_DATA) ./files/hetzner_ddns.conf $(1)/etc/config/hetzner_ddns.conf
 endef
 
 define Package/$(PKG_NAME)/prerm
