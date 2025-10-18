@@ -9,164 +9,175 @@ log() {
     printf '[%s] %s\n' "$(date +"%Y-%m-%dT%H:%M:%S%z")" "$1" | >&2 tee -a "$log_file"
 }
 
+test_dependencies() {
+    for d in awk curl jq netstat; do
+        if ! command -v "$d" 1> /dev/null 2> /dev/null; then
+            log "Fatal error: Missing dependency $d"
+            exit 1
         fi
     done
-    if [ -z "$records_ipv4" ] && [ -z "$records_ipv6" ]; then
-        printf '[%s] Error: No applicable records found %s\n' \
-                "$(date '+%Y-%m-%d %H:%M:%S')" "$domain" | tee -a "/var/log/$self.log"
-        return 1
-    fi
 }
 
-get_record_ip_addr() {
-    # Get record's IP address
-    if [ -n "$record_ipv4" ]; then
-        ipv4_rec="$(
-            curl "https://dns.hetzner.com/api/v1/records/$record_ipv4" \
-                -H "Auth-API-Token: $key" 2>/dev/null | \
-            jq -r '.record.value'
-        )"
+test_conf_file() {
+    # Test if file exists
+    if ! test -f "$conf_file"; then
+        log "Fatal error: Configuration file '$conf_file' not found"
+        exit 1
     fi
-    if [ -n "$record_ipv6" ]; then
-        ipv6_rec="$(
-            curl "https://dns.hetzner.com/api/v1/records/$record_ipv6" \
-                -H "Auth-API-Token: $key" 2>/dev/null | \
-            jq -r '.record.value'
-        )"
+    if ! test -r "$conf_file"; then
+        log "Fatal error: Configuration file is not readable"
+        exit 1
     fi
-    if [ -n "$record_ipv4" ]; then
-        if [ -z "$ipv4_rec" ] || [ "$ipv4_rec" = 'null' ]; then
-            printf '[%s] Warning: Unable to fetch previous IPv4 address for %s\n' \
-                "$(date '+%Y-%m-%d %H:%M:%S')" "$current_record.$domain" | tee -a "/var/log/$self.log"
-            ipv4_rec=''
-        fi;
+    # Check version
+    version_major="$(jq -r '.version | split(".") | .[0]' "$conf_file")"
+    if [ "$version_major" -ne 1 ] ; then
+        log "Fatal error: Incompatible configuration file version"
+        exit 1
     fi
-     if [ -n "$record_ipv6" ]; then
-        if [ -z "$ipv6_rec" ] || [ "$ipv6_rec" = 'null' ]; then
-            printf '[%s] Warning: Unable to fetch previous IPv6 address for %s\n' \
-                "$(date '+%Y-%m-%d %H:%M:%S')" "$current_record.$domain" | tee -a "/var/log/$self.log"
-            ipv6_rec=''
-        fi;
-    fi
-    if [ -z "$ipv4_rec" ] && [ -z "$ipv6_rec" ]; then
-        return 1
-    fi
+    log "Using configuration file '$conf_file'"
 }
 
-get_my_ip_addr() {
-    # Get current public IP address
-    if [ "$ipv4" = 'true' ]; then
-        ipv4_cur="$(
-            curl -4 'https://ip.hetzner.com/' 2>/dev/null
-        )"
+load_and_test_api_key() {
+    api_key="$(jq -r '.api_key' "$conf_file")"
+    if [ -z "$api_key" ] || [ "$api_key" = 'null' ]; then
+        log "Fatal error: API key not provided"
+        exit 1
     fi
-    if [ "$ipv6" = 'true' ]; then
-        ipv6_cur="$(
-            curl -6 'https://ip.hetzner.com/' 2>/dev/null | sed 's/:$/:1/g'
-        )"
+    if [ "$(printf '%s' "$api_key" | wc -m)" != 64 ]; then
+        log "Fatal error: Invalid API key format"
+        exit 1
     fi
-    if [ -z "$ipv4_cur" ] && [ -z "$ipv6_cur" ]; then
-        printf '[%s] Error: Unable to fetch current self IP address\n' \
-            "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
-        return 1
+    if [ "$(curl \
+	    -H "Authorization: Bearer $api_key" \
+        -I -w "%{http_code}" \
+        -s -o /dev/null \
+	    "$api_url/zones")" != 200 ]; then
+        log "Fatal error: Provided API key is unauthorized"
+        exit 1
     fi
+    log "Loaded valid API key"
 }
 
-set_record() {
-    # Update record if IP address has changed
-    if [ "$ipv4" = 'true' ] && [ -n "$record_ipv4" ] && [ -n "$ipv4_cur" ] && [ "$ipv4_cur" != "$ipv4_rec" ]; then
-        curl -X "PUT" "https://dns.hetzner.com/api/v1/records/$record_ipv4" \
-            -H 'Content-Type: application/json' \
-            -H "Auth-API-Token: $key" \
-            -d "{
-            \"value\": \"$ipv4_cur\",
-            \"ttl\": $interval,
-            \"type\": \"A\",
-            \"name\": \"$current_record\",
-            \"zone_id\": \"$zone\"
-            }" 1>/dev/null 2>/dev/null &&
-        printf "[%s] Update IPv4 for %s: %s => %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$current_record.$domain" "$ipv4_rec" "$ipv4_cur" | tee -a "/var/log/$self.log"
-    fi
-    if [ "$ipv6" = 'true' ] && [ -n "$record_ipv6" ] && [ -n "$ipv6_cur" ] && [ "$ipv6_cur" != "$ipv6_rec" ]; then
-        curl -X "PUT" "https://dns.hetzner.com/api/v1/records/$record_ipv6" \
-            -H 'Content-Type: application/json' \
-            -H "Auth-API-Token: $key" \
-            -d "{
-            \"value\": \"$ipv6_cur\",
-            \"ttl\": $interval,
-            \"type\": \"AAAA\",
-            \"name\": \"$current_record\",
-            \"zone_id\": \"$zone\"
-            }" 1>/dev/null 2>/dev/null &&
-        printf "[%s] Update IPv6 for %s: %s => %s\n" "$(date '+%Y-%m-%d %H:%M:%S')" \
-            "$current_record.$domain" "$ipv6_rec" "$ipv6_cur" | tee -a "/var/log/$self.log"
-    fi
+load_records() {
+    records="$(jq \
+        --arg default_interface "$(
+            netstat -rn | awk '$1 == "default" || $1 == "0.0.0.0" {print $NF; exit}'
+        )" \
+        --arg default_ttl 60 \
+        --arg default_type 'A/AAAA' \
+        -r '
+        (
+          (.defaults // {
+            type: $default_type,
+            interface: $default_interface,
+            ttl: $default_ttl,
+          })
+          | {
+            type: (.type // $default_type),
+            interface: (.interface // $default_interface),
+            ttl: (.ttl // $default_ttl)
+          }
+        ) as $defaults
+        | .zones[]
+        | .domain as $domain
+        | .records[]
+        | {
+            domain: $domain,
+            type: (.type // $defaults.type),
+            name: .name,
+            interface: (.interface // $defaults.interface),
+            ttl: (.ttl // $defaults.ttl)
+          }
+        | (.name | split("/")) as $names
+        | (.type | split("/")) as $types
+        | $names[] as $name
+        | $types[] as $type
+        | "\($domain)\t\($name)\t\($type)\t\(.ttl)\t\(.interface)"
+    ' "$conf_file")"
 }
 
-pick_record() {
-    # Get record ID from array
-    echo "$2" | \
-    awk "{
-        for(i=1;i<=NF;i++){
-            n=\$i;gsub(/=.*/,\"\",n);
-            r=\$i;gsub(/.*=/,\"\",r);
-            if(n==\"$1\"){
-                print r;break
-            }
-        }}"
-}
-
-set_records() {
-    # Get my public IP address
-    if get_my_ip_addr; then
-        # Update all records if possible
-        for current_record in $records_escaped; do
-            current_record="$(echo "$current_record" | sed 's:\\::')"
-            record_ipv4="$(pick_record "$current_record" "$records_ipv4")"
-            record_ipv6="$(pick_record "$current_record" "$records_ipv6")"
-            if [ -n "$record_ipv4" ] || [ -n "$record_ipv6" ]; then
-                get_record_ip_addr && set_record
-            fi
-        done
-    fi
-}
-
-run_ddns() {
-    printf '[%s] Started Hetzner DDNS daemon\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-                | tee -a "/var/log/$self.log"
-
-    read_configuration
-    test_api_key
-
-    while ! get_zone || ! get_records; do
-        sleep $((interval/2+1))
-        printf '[%s] Retrying to fetch zone and record data\n' "$(date '+%Y-%m-%d %H:%M:%S')" \
-                | tee -a "/var/log/$self.log"
+test_interfaces() {
+    for i in $(printf '%s' "$records" | cut -f5 | sort | uniq -d); do
+        if ! test -f "/sys/class/net/$i/operstate"; then
+            log "Fatal error: Missing network interface '$i'"
+            exit 1
+        fi
     done
-
-    printf '[%s] Configuration successful\n' \
-        "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
-    printf '[%s] Watching for IP address and record changes\n' \
-        "$(date '+%Y-%m-%d %H:%M:%S')" | tee -a "/var/log/$self.log"
-
-    while true; do
-        set_records
-        sleep "$interval"
-    done
+    log "All used network interfaces exist"
 }
 
-if [ "$daemon" = '1' ]; then
-    # Deamonize and write PID to file
-    if touch "/var/run/$self.pid";
-    then
-        run_ddns &
-        echo $! > "/var/run/$self.pid"
-    else
-        >&2 echo 'unable to daemonize'
-        exit 2
+test_domains() {
+    for d in $(printf '%s' "$records" | cut -f1 | sort | uniq -d); do
+        if [ "$(curl \
+            -H "Authorization: Bearer $api_key" \
+            -I -w "%{http_code}" \
+            -s -o /dev/null \
+            "$api_url/zones/$d/rrsets")" != 200 ]; then
+            log "Fatal error: Unable to access zone of domain '$d'"
+            exit 1
+        fi
+    done
+    log "All domain zones are accessible using provided API key"
+}
+
+test_records() {
+    record_duplicates="$(printf '%s' "$records" | cut -f1-3 | sort | uniq -d)"
+    # Check duplicate entries
+    if [ -n "$record_duplicates" ]; then
+        while IFS="$(printf '\t')" read -r record_domain record_name record_type; do
+            log "Fatal error: Multiple entries for record '$record_name' of type '$record_type' for domain '$record_domain'"
+            exit 1
+done <<EOF
+$record_duplicates
+EOF
     fi
-else
-    # Run in foreground
-    run_ddns
-fi
+    while IFS="$(printf '\t')" read -r record_domain record_name record_type record_ttl record_interface; do
+        # Check record type
+        if [ "$record_type" != 'A' ] && [ "$record_type" != 'AAAA' ]; then
+            log "Fatal error: Record '$record_name' of type '$record_type' for domain '$record_domain' is not supported"
+            exit 1
+        fi
+        # Check record TTL
+        if [ "$record_ttl" -lt 60 ] || [ "$record_ttl" -gt 2147483647 ]; then
+            log "Fatal error: $record_type record '$record_name' for domain '$record_domain' has invalid TTL value"
+            exit 1
+        fi
+        # Check number of entries for record
+        record_entries="$(
+            curl -H "Authorization: Bearer $api_key" -s \
+            "https://api.hetzner.cloud/v1/zones/$record_domain/rrsets/$record_name/$record_type" | \
+            jq '.rrset.records | length'
+        )"
+        if [ "$record_entries" -eq 0 ]; then
+            log "Fatal error: $record_type record '$record_name' for domain '$record_domain' doesn't exist in Hetzner Console"
+            exit 1
+        fi
+        if [ "$record_entries" -gt 1 ]; then
+            log "Fatal error: $record_type record '$record_name' for domain '$record_domain' has more than one entry"
+            exit 1
+        fi
+        # Check record interface connection
+        case "$record_type" in
+            'A') v='4';;
+            'AAAA') v='6';;
+        esac
+        if ! curl "-$v" --interface "$record_interface" \
+            -s -I 'https://ip.hetzner.com/' --connect-timeout 10 --max-time 10 -o /dev/null; then
+            log "Fatal error: Network interface $record_interface has no IPv$v internet connection"
+            exit 1
+        fi
+done <<EOF
+$records
+EOF
+    log "All records are valid"
+}
+
+log "Starting hetzner_ddns $version"
+test_dependencies
+test_conf_file
+load_and_test_api_key
+load_records
+test_interfaces
+test_domains
+test_records
+log "Setup completed"
