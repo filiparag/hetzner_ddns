@@ -1,29 +1,35 @@
 #!/bin/sh
 
-# Settings
+program='hetzner_ddns'
 version='1.0.0'
-log_file=
-ip_check_cooldown=30
-request_timeout=10
-conf_file='./hetzner_ddns.json'
-api_url='https://api.hetzner.cloud/v1'
+detach=0
+verbose=0
+cfg_file="/etc/${program}.json"
+
+# User-modifiable settings
+conf_log_file=
+conf_ip_check_cooldown=30
+conf_request_timeout=10
+conf_api_url='https://api.hetzner.cloud/v1'
+conf_ip_url='https://ip.hetzner.com/'
 
 log() {
-    if test -r "$log_file"; then
-        printf '[%s] %s\n' "$(date +"%Y-%m-%dT%H:%M:%S%z")" "$1" | >&2 tee -a "$log_file"
-    else
+    if test -r "$conf_log_file"; then
+        printf '[%s] %s\n' "$(date +"%Y-%m-%dT%H:%M:%S%z")" "$1" >> "$conf_log_file"
+    fi
+    if [ "$verbose" = 1 ]; then
         >&2 printf '[%s] %s\n' "$(date +"%Y-%m-%dT%H:%M:%S%z")" "$1"
     fi
 }
 
 create_log_file() {
-    if [ -z "$log_file" ]; then
+    if [ -z "$conf_log_file" ]; then
         return
     fi
-    if install -m 644 /dev/null "$log_file" 1>/dev/null 2>/dev/null; then
-        log "Using log file '$log_file'"
+    if install -m 644 /dev/null "$conf_log_file" 1>/dev/null 2>/dev/null; then
+        log "Using log file '$conf_log_file'"
     else
-        log "Warning: Unable to use log file '$log_file'"
+        log "Warning: Unable to use log file '$conf_log_file'"
     fi
 }
 
@@ -36,50 +42,142 @@ test_dependencies() {
     done
 }
 
-test_conf_file() {
+parse_cli_args() {
+    while getopts c:l:vVdh opt; do
+        case "$opt" in
+            c)
+                cfg_file="$OPTARG";;
+            l)
+                conf_log_file="$OPTARG";;
+            v)
+                display_version;
+                exit 0;;
+            V)
+                verbose=1;;
+            d)
+                detach=1;;
+            h)
+                display_version;
+                display_help;
+                exit 0;;
+            *)  exit 1;;
+        esac
+    done
+    shift "$((OPTIND - 1))"
+}
+
+display_version() {
+    echo "$program $version - Hetzner Dynamic DNS Daemon"
+}
+
+display_help() {
+    echo '
+Options:
+
+    -c <file>   Use specified configuration file
+    -l <file>   Use specified log file
+    -V          Display all log messages to stderr
+    -d          Detach from current shell and run as a deamon
+    -h          Print help and exit
+    -v          Print version and exit
+'
+echo '
+Configuration:
+
+    "settings": {
+      "log_file": Path to a custom configuration file
+      "ip_check_cooldown": Time between subsequent checks of interface'\''s IP address
+      "request_timeout": Maximum duration of HTTP requests
+      "api_url": URL of the Hetzner Console'\''s API
+      "ip_url": URL of a service for retreiving external IP addresses
+    }
+
+    "defaults": {
+      "type": Default record type (can be "A", "AAAA", or "A/AAAA")
+      "interface": Default network interface name (auto-detect if unspecified),
+      "ttl": Default TTL value in seconds (60 <= TTL <= 2147483647),
+    }
+
+    "zones": [
+      {
+        "domain": Domain name of a zone
+        "records": [
+          {
+            "name": Name of the record (use @ for domain'\''s root)
+            "type": Override of the default record type
+            "ttl": Override of the default TTL
+            "interface": Override of the default interface
+          }
+        ]
+      }
+    ]
+'
+echo '
+Usage:
+
+    Run on startup
+        service hetzner_ddns enable
+
+    Start
+        service hetzner_ddns start
+
+    Stop
+        service hetzner_ddns stop
+
+    Runtime messages log file
+        Runtime log is located at /var/log/hetzner_ddns.log
+
+    Trigger update of all records
+        service hetzner_ddns reload
+'
+}
+
+test_cfg_file() {
     # Test if file exists
-    if ! test -f "$conf_file"; then
-        log "Error: Configuration file '$conf_file' not found"
+    if ! test -f "$cfg_file"; then
+        log "Error: Configuration file '$cfg_file' not found"
         return 1
     fi
-    if ! test -r "$conf_file"; then
-        log "Error: Configuration file is not readable"
+    if ! test -r "$cfg_file"; then
+        log 'Error: Configuration file is not readable'
         return 1
     fi
     # Check version
-    version_major="$(jq -r '.version | split(".") | .[0]' "$conf_file")"
+    version_major="$(jq -r '.version | split(".") | .[0]' "$cfg_file")"
     if [ "$version_major" -ne 1 ] ; then
-        log "Error: Incompatible configuration file version"
+        log 'Error: Incompatible configuration file version'
         return 1
     fi
-    log "Using configuration file '$conf_file'"
+    log "Using configuration file '$cfg_file'"
 }
 
 load_and_test_api_key() {
-    api_key="$(jq -r '.api_key' "$conf_file")"
+    api_key="$(jq -r '.api_key' "$cfg_file")"
     if [ -z "$api_key" ] || [ "$api_key" = 'null' ]; then
-        log "Error: API key not provided"
+        log 'Error: API key not provided'
         return 1
     fi
     if [ "$(printf '%s' "$api_key" | wc -m)" != 64 ]; then
-        log "Error: Invalid API key format"
+        log 'Error: Invalid API key format'
         return 1
     fi
     if [ "$(curl \
-            --connect-timeout "$request_timeout" --max-time "$request_timeout" \
+            --connect-timeout "$conf_request_timeout" --max-time "$conf_request_timeout" \
             -H "Authorization: Bearer $api_key" \
             -I -w "%{http_code}" \
             -s -o /dev/null \
-            "$api_url/zones")" != 200 ]; then
-        log "Error: Provided API key is unauthorized"
+            "$conf_api_url/zones")" != 200 ]; then
+        log 'Error: Provided API key is unauthorized'
         return 1
     fi
-    log "Loaded valid API key"
+    log 'Loaded valid API key'
 }
 
 load_settings() {
-    eval "$(jq -r '.settings | to_entries[] | "\(.key)='\''\(.value|tostring)'\''"' "$conf_file")"
-    log "Loaded user settings from configuration file"
+    if [ "$(jq -r '.settings' "$cfg_file")" != 'null' ]; then
+        eval "$(jq -r '.settings | to_entries[] | "conf_\(.key)='\''\(.value|tostring)'\''"' "$cfg_file")"
+        log 'Loaded user settings from configuration file'
+    fi
 }
 
 load_records() {
@@ -117,7 +215,29 @@ load_records() {
         | $names[] as $name
         | $types[] as $type
         | "\($domain)\t\($name)\t\($type)\t\(.ttl)\t\(.interface)"
-    ' "$conf_file")"
+    ' "$cfg_file")"
+}
+
+display_records() {
+    w_domain="$(printf 'DOMAIN\n%s' "$records" | cut -f1 | wc -L)"
+    w_name="$(printf 'NAME\n%s' "$records" | cut -f2 | wc -L)"
+    w_type="$(printf 'TYPE\n%s' "$records" | cut -f3 | wc -L)"
+    w_ttl="$(printf 'TTL\n%s' "$records" | cut -f4 | wc -L)"
+    w_interface="$(printf 'INTERFACE\n%s' "$records" | cut -f5 | wc -L)"
+    log "$(printf "+-%-${w_domain}s-+-%-${w_name}s-+-%-${w_type}s-+-%-${w_ttl}s-+-%-${w_interface}s-+\n" \
+        | tr ' ' '-')"
+    log "$(printf "| %-${w_domain}s | %-${w_name}s | %-${w_type}s | %-${w_ttl}s | %-${w_interface}s |\n" \
+        "DOMAIN" "NAME" "TYPE" "TTL" "INTERFACE")"
+    log "$(printf "+-%-${w_domain}s-+-%-${w_name}s-+-%-${w_type}s-+-%-${w_ttl}s-+-%-${w_interface}s-+\n" \
+        | tr ' ' '-')"
+    while IFS="$(printf '\t')" read -r record_domain record_name record_type record_ttl record_interface; do
+        log "$(printf "| %-${w_domain}s | %-${w_name}s | %-${w_type}s | %${w_ttl}d | %-${w_interface}s |\n" \
+            "$record_domain" "$record_name" "$record_type" "$record_ttl" "$record_interface")"
+done <<EOF
+$records
+EOF
+    log "$(printf "+-%-${w_domain}s-+-%-${w_name}s-+-%-${w_type}s-+-%-${w_ttl}s-+-%-${w_interface}s-+\n" \
+        | tr ' ' '-')"
 }
 
 test_interfaces() {
@@ -127,22 +247,22 @@ test_interfaces() {
             return 1
         fi
     done
-    log "All network interfaces are working"
+    log 'All network interfaces are working'
 }
 
 test_domains() {
     for d in $(printf '%s' "$records" | cut -f1 | sort | uniq -d); do
         if [ "$(curl \
-                --connect-timeout "$request_timeout" --max-time "$request_timeout" \
+                --connect-timeout "$conf_request_timeout" --max-time "$conf_request_timeout" \
                 -H "Authorization: Bearer $api_key" \
                 -I -w "%{http_code}" \
                 -s -o /dev/null \
-                "$api_url/zones/$d/rrsets")" != 200 ]; then
+                "$conf_api_url/zones/$d/rrsets")" != 200 ]; then
             log "Error: Unable to access zone of domain '$d'"
             return 1
         fi
     done
-    log "All domain zones are accessible using provided API key"
+    log 'All domain zones are accessible using provided API key'
 }
 
 test_records() {
@@ -172,7 +292,7 @@ EOF
         fi
         # Check number of entries for record
         record_entries="$(
-            curl --connect-timeout "$request_timeout" --max-time "$request_timeout" \
+            curl --connect-timeout "$conf_request_timeout" --max-time "$conf_request_timeout" \
                 -H "Authorization: Bearer $api_key" -s \
                 "https://api.hetzner.cloud/v1/zones/$record_domain/rrsets/$record_name/$record_type" | \
                 jq '.rrset.records | length'
@@ -189,19 +309,20 @@ EOF
             'A') v='4';;
             'AAAA') v='6';;
         esac
-        if ! curl --connect-timeout "$request_timeout" --max-time "$request_timeout" \
-                "-$v" --interface "$record_interface" -s -I 'https://ip.hetzner.com/' -o /dev/null; then
+        if ! curl --connect-timeout "$conf_request_timeout" --max-time "$conf_request_timeout" \
+                "-$v" --interface "$record_interface" -s -I "$conf_ip_url" -o /dev/null; then
             log "Warning: Network interface $record_interface has no IPv$v internet connection"
         fi
 done <<EOF
 $records
 EOF
-    log "All records are valid"
+    log 'All records are valid:'
+    display_records
 }
 
 create_service_state() {
     # Create directory
-    state_dir="$(mktemp -d -t 'hetzner_ddns_XXXXXXXX')"
+    state_dir="$(mktemp -d -t "${program}_XXXXXXXX")"
     # Register cleanup routine trigger
     trap cleanup_service_state TERM INT
     # Create event pipe
@@ -225,22 +346,27 @@ create_service_state() {
         echo '0' > "$state_dir/if_${i}_ipv4_last_updated"
         echo '0' > "$state_dir/if_${i}_ipv6_last_updated"
     done
+    # Create ephemeral log file if not specified
+    if [ -z "$conf_log_file" ]; then
+        conf_log_file="$state_dir/log"
+        touch "$conf_log_file"
+    fi
     log "Service state directory '$state_dir' created"
 }
 
 trigger_manual_update() {
     if [ -p "$event_pipe" ]; then
-        log "Triggering update of all records"
+        log 'Triggering update of all records'
         for t in $(printf '%s' "$records" | cut -f4 | sort | uniq); do
             echo "$t" > "$event_pipe"
         done
     else
-        log "Unable to trigger manual update"
+        log 'Unable to trigger manual update'
     fi
 }
 
 cleanup_service_state() {
-    log "Cleanup started"
+    log 'Cleanup started'
     # Kill all short-lived children processes
     for p in $(cat "$short_processes"); do
         kill -9 "$p" 2>/dev/null
@@ -249,11 +375,11 @@ cleanup_service_state() {
     for p in $(tail -n +2 "$long_processes" | sort -r); do
         kill -9 "$p" 2>/dev/null
     done
-    log "Background tickers stopped"
+    log 'Background tickers stopped'
     # Remove state directory
     rm -rf "$state_dir"
-    log "Service state directory removed"
-    log "Exiting cleanly"
+    log 'Service state directory removed'
+    log 'Exiting cleanly'
     exit 0
 }
 
@@ -282,13 +408,15 @@ spawn_event_tickers() {
         event_ticker "$t" &
         echo "$!" >> "$long_processes"
     done
-    log "Spawned background tickers"
+    log 'Spawned background tickers'
 }
 
 start_event_loop() {
     log 'Started record update event loop'
     # Register manual update trigger
     trap trigger_manual_update USR1
+    # Re-register cleanup if detached
+    trap cleanup_service_state TERM INT
     while true; do
         while IFS= read -r ttl; do
             # Process the records whose TTL expired
@@ -304,14 +432,14 @@ update_interface_ip() {
     interface="$2"
     last_updated="$(cat "$state_dir/if_${interface}_ipv${version}_last_updated")"
     now="$(date +%s)"
-    if [ $((now - last_updated)) -lt "$ip_check_cooldown" ]; then
+    if [ $((now - last_updated)) -lt "$conf_ip_check_cooldown" ]; then
         # Cooldown period not reached
         return
     fi
     old_value="$(cat "$state_dir/if_${interface}_ipv${version}_addr")"
     new_value="$(
-        curl --connect-timeout "$request_timeout" --max-time "$request_timeout" \
-            -"$version" 'https://ip.hetzner.com/' 2>/dev/null
+        curl --connect-timeout "$conf_request_timeout" --max-time "$conf_request_timeout" \
+            -"$version" "$conf_ip_url" 2>/dev/null
     )"
     if [ -z "$new_value" ]; then
         log "Warning: Could not fetch new IPv$version address for interface '$interface'"
@@ -367,7 +495,7 @@ update_record() {
                 \"records\": [
                     {
                         \"value\": \"$expected_value\",
-                        \"comment\": \"Managed by hetzner_ddns\"
+                        \"comment\": \"Managed by $program on $(hostname)\"
                     }
                 ]
             }" \
@@ -429,10 +557,11 @@ EOF
     eval "wait $updaters"
 }
 
-log "Starting hetzner_ddns $version"
+log "Starting $program $version"
 {
     test_dependencies && \
-    test_conf_file && \
+    parse_cli_args "$@" && \
+    test_cfg_file && \
     load_settings && \
     create_log_file && \
     load_and_test_api_key && \
@@ -441,14 +570,22 @@ log "Starting hetzner_ddns $version"
     test_domains && \
     test_records && \
     create_service_state && \
-    log "Setup completed"
+    log 'Setup completed'
 } ||
 {
-    log "Setup failed"; exit 1
-}
-{
-    spawn_event_tickers && \
-    start_event_loop && \
-    cleanup_service_state
+    log 'Setup failed'; exit 1
 }
 
+if [ "$detach" = 1 ]; then
+    {
+        verbose=0
+        spawn_event_tickers && \
+        start_event_loop
+        cleanup_service_state
+    } 1>/dev/null 2>/dev/null &
+    log "Detaching $program to background as process $!"
+else
+    spawn_event_tickers && \
+    start_event_loop
+    cleanup_service_state
+fi

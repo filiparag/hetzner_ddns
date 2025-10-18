@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "api_key": "****************************************************************",
+  "settings": {},
+  "defaults": {
+    "ttl": 60
+  },
+  "zones": [
+    {
+      "domain": "example.com",
+      "records": [
+        {
+          "type": "A/AAAA",
+          "name": "@",
+          "ttl": 3600,
+          "interface": "eth0"
+        },
+        {
+          "type": "A",
+          "name": "homelab"
+        },
+        {
+          "name": "media/ftp/data"
+        }
+      ]
+    },
+    {
+      "domain": "my-proxy.tld",
+      "records": [{ "name": "vpn" }]
+    }
+  ]
+}

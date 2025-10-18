@@ -1,78 +1,97 @@
-.\" Manual for hetzner_ddns.
-.TH "hetzner_ddns" 1 "8 December 2024" "hetzner_ddns 0.2.6" "Hetzner DDNS Manual"
+.TH hetzner_ddns 1 "2025-10-18" "hetzner_ddns 1.0.0" "Manual for hetzner_ddns"
 .SH NAME
-.B hetzner_ddns
-\- Hetzner Dynamic DNS Daemon
+hetzner_ddns \- Hetzner Dynamic DNS Daemon
 .SH SYNOPSIS
-.B hetzner_ddns [--daemon] [CONFIG]
-.P
-This program should be run as a system service.
+.B hetzner_ddns
+[\fB\-c\fR \fIconfig_file\fR]
+[\fB\-l\fR \fIlog_file\fR]
+[\fB\-V\fR]
+[\fB\-d\fR]
+[\fB\-h\fR]
+[\fB\-v\fR]
+.SH DESCRIPTION
+.B hetzner_ddns
+Continuously update Hetzner DNS A and AAAA records
+for your server with a dynamic IP address.
 .SH OPTIONS
-.HP
-.B -d, --daemon
-.br
-Detach from current shell and run as a deamon
-.HP
-.B -h, --help
-.br
+.TP
+.BR \-c " " \fIconfig_file\fR
+Use specified configuration file
+.TP
+.BR \-l " " \fIlog_file\fR
+Use specified log file
+.TP
+.BR \-V
+Display all log messages to stderr
+.TP
+.BR \-d
+Detach from current shell and run as a daemon
+.TP
+.BR \-h
 Print help and exit
-.HP
-.B -v, --version
-.br
+.TP
+.BR \-v
 Print version and exit
-.HP
-.B CONFIG
-.br
-Use configuration file hetzner_ddns.\fICONFIG\fR.conf
-.br
-and log to file hetzner_ddns.\fICONFIG\fR.log
-.SH USAGE
-.SS Run on startup
-service hetzner_ddns
-.B enable
-.SS Start
-service hetzner_ddns
-.B start
-.SS Stop
-service hetzner_ddns
-.B stop
-.SS Runtime messages log file
-Runtime log is located at
-.I /var/log/hetzner_ddns.log
-.SS Multiple daemon instances \fR(systemd only)
-systemctl <action> hetzner_ddns@\fICONFIG\fR
 .SH CONFIGURATION
-Configuration file is located at
-.I /usr/local/etc/hetzner_ddns.conf
-.HP
-.B interval
-<seconds>
-.br
-Seconds between updates / TTL value
-.HP
-.B key
-<32 character key>
-.br
-Hetzner DNS API key
-.HP
-.B domain
-<domain name>
-.br
-Top level domain name
-.HP
-.B records
-<hostname>...
-.br
-Space separated host subdomains (
-.B @
-for the domain itself )
-.HP
-.B ipv4
-<true|false>
-.br
-Enable updating A records (IPv4)
-.HP
-.B ipv6
-<true|false>
-.br
-Enable updating AAAA records (IPv6)
+The configuration file uses JSON format with the following structure:
+.SS settings
+.TP
+.BR log_file
+Path to a custom configuration file
+.TP
+.BR ip_check_cooldown
+Time between subsequent checks of interface's IP address
+.TP
+.BR request_timeout
+Maximum duration of HTTP requests
+.TP
+.BR api_url
+URL of the Hetzner Console's API
+.TP
+.BR ip_url
+URL of a service for retrieving external IP addresses
+.SS defaults
+.TP
+.BR type
+Default record type (can be "A", "AAAA", or "A/AAAA")
+.TP
+.BR interface
+Default network interface name (auto-detect if unspecified)
+.TP
+.BR ttl
+Default TTL value in seconds (60 <= TTL <= 2147483647)
+.SS zones
+An array of zone objects, each containing:
+.TP
+.BR domain
+Domain name of a zone
+.TP
+.BR records
+An array of record objects, each containing:
+.RS
+.TP
+.BR name
+Name of the record (use @ for domain's root)
+.TP
+.BR type
+Override of the default record type
+.TP
+.BR ttl
+Override of the default TTL
+.TP
+.BR interface
+Override of the default interface
+.RE
+.SH USAGE
+.TP
+.B Run on startup
+service hetzner_ddns enable
+.TP
+.B Start
+service hetzner_ddns start
+.TP
+.B Stop
+service hetzner_ddns stop
+.TP
+.B Trigger update of all records
+service hetzner_ddns reload
