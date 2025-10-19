@@ -36,7 +36,7 @@ create_log_file() {
 test_dependencies() {
     for d in awk curl cut jq mkfifo mktemp netstat sed sort uniq; do
         if ! command -v "$d" 1> /dev/null 2> /dev/null; then
-            log "Error: Missing dependency $d"
+            echo "Error: Missing dependency '$d'"
             return 1
         fi
     done
@@ -294,7 +294,7 @@ EOF
         record_entries="$(
             curl --connect-timeout "$conf_request_timeout" --max-time "$conf_request_timeout" \
                 -H "Authorization: Bearer $api_key" -s \
-                "https://api.hetzner.cloud/v1/zones/$record_domain/rrsets/$record_name/$record_type" | \
+                "$conf_api_url/zones/$record_domain/rrsets/$record_name/$record_type" | \
                 jq '.rrset.records | length'
         )"
         if [ "$record_entries" -eq 0 ]; then
@@ -463,7 +463,7 @@ update_record() {
     log "Update time reached for $type record '$name' for domain '$domain'"
     current_rrset="$(
         curl -s -H "Authorization: Bearer $api_key" \
-        "https://api.hetzner.cloud/v1/zones/$domain/rrsets/$name/$type"
+        "$conf_api_url/zones/$domain/rrsets/$name/$type"
     )"
     current_value="$(
         echo "$current_rrset" | \
@@ -499,7 +499,7 @@ update_record() {
                     }
                 ]
             }" \
-            "https://api.hetzner.cloud/v1/zones/$domain/rrsets/$name/$type/actions/set_records" >/dev/null; then
+            "$conf_api_url/zones/$domain/rrsets/$name/$type/actions/set_records" >/dev/null; then
             log "Changed $type record '$name' for domain '$domain': $current_value => $expected_value"
         else
             log "Warning: Unable to update value of $type record '$name' for domain '$domain'"
@@ -513,7 +513,7 @@ update_record() {
             -d "{
                 \"ttl\": $ttl
             }" \
-            "https://api.hetzner.cloud/v1/zones/$domain/rrsets/$name/$type/actions/change_ttl" >/dev/null; then
+            "$conf_api_url/zones/$domain/rrsets/$name/$type/actions/change_ttl" >/dev/null; then
             log "Changed $type record '$name' for domain '$domain': TTL = $ttl"
         else
             log "Warning: Unable to update TTL of $type record '$name' for domain '$domain'"
@@ -525,6 +525,7 @@ process_tick() {
     ttl="$1"
     log "Check records with TTL value of $ttl seconds"
     # Update IPv4 addresses for all relevant interfaces
+    updaters=
     for i in $(
         printf '%s' "$records" | \
         awk -v OFS='\t' -v ttl="$ttl" '$4 == ttl && $3 == "A" { print $5 }' \
