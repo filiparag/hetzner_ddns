@@ -34,7 +34,7 @@ create_log_file() {
 }
 
 test_dependencies() {
-    for d in awk curl cut jq mkfifo mktemp netstat sed sort uniq; do
+    for d in awk curl cut getopts jq mkfifo mktemp netstat sed sort uniq; do
         if ! command -v "$d" 1> /dev/null 2> /dev/null; then
             echo "Error: Missing dependency '$d'"
             return 1
@@ -216,6 +216,10 @@ load_records() {
         | $types[] as $type
         | "\($domain)\t\($name)\t\($type)\t\(.ttl)\t\(.interface)"
     ' "$cfg_file")"
+    if [ -z "$records" ]; then
+        log 'No records found'
+        return 1
+    fi
 }
 
 display_records() {
@@ -241,7 +245,7 @@ EOF
 }
 
 test_interfaces() {
-    for i in $(printf '%s' "$records" | cut -f5 | sort | uniq -d); do
+    for i in $(printf '%s' "$records" | cut -f5 | sort | uniq); do
         if ! test -f "/sys/class/net/$i/operstate"; then
             log "Error: Missing network interface '$i'"
             return 1
@@ -340,17 +344,12 @@ create_service_state() {
     # Dump all records
     echo "$records" > "$state_dir/records"
     # For each used interface create current IP values and last updated
-    for i in $(printf '%s' "$records" | cut -f5 | sort | uniq -d); do
-        echo '0.0.0.0' > "$state_dir/if_${i}_ipv4_addr"
-        echo '::' > "$state_dir/if_${i}_ipv6_addr"
+    for i in $(echo "$records" | cut -f5 | sort | uniq); do
+        echo > "$state_dir/if_${i}_ipv4_addr"
+        echo > "$state_dir/if_${i}_ipv6_addr"
         echo '0' > "$state_dir/if_${i}_ipv4_last_updated"
         echo '0' > "$state_dir/if_${i}_ipv6_last_updated"
     done
-    # Create ephemeral log file if not specified
-    if [ -z "$conf_log_file" ]; then
-        conf_log_file="$state_dir/log"
-        touch "$conf_log_file"
-    fi
     log "Service state directory '$state_dir' created"
 }
 
@@ -369,11 +368,11 @@ cleanup_service_state() {
     log 'Cleanup started'
     # Kill all short-lived children processes
     for p in $(cat "$short_processes"); do
-        kill -9 "$p" 2>/dev/null
+        kill -9 "$p" 1>/dev/null 2>/dev/null
     done
     # Kill all long-running children processes
     for p in $(tail -n +2 "$long_processes" | sort -r); do
-        kill -9 "$p" 2>/dev/null
+        kill -9 "$p" 1>/dev/null 2>/dev/null
     done
     log 'Background tickers stopped'
     # Remove state directory
@@ -391,7 +390,7 @@ clean_up_short_processes() {
         fi
     done
     # Keep only still-running PIDs
-    echo "$short_keep" > "$short_processes"
+    echo "$short_keep" | sed 's/ /\n/g' > "$short_processes"
 }
 
 event_ticker() {
@@ -439,7 +438,7 @@ update_interface_ip() {
     old_value="$(cat "$state_dir/if_${interface}_ipv${version}_addr")"
     new_value="$(
         curl --connect-timeout "$conf_request_timeout" --max-time "$conf_request_timeout" \
-            -"$version" "$conf_ip_url" 2>/dev/null
+            --interface "$interface" -"$version" "$conf_ip_url" 2>/dev/null
     )"
     if [ -z "$new_value" ]; then
         log "Warning: Could not fetch new IPv$version address for interface '$interface'"
@@ -473,15 +472,19 @@ update_record() {
         echo "$current_rrset" | \
         jq -r '.rrset.ttl'
     )"
-    if [ -z "$current_value" ] || [ "$current_value" = 'null' ]; then
-        log "Warning: Unable to fetch value of $type record $name for domain $domain"
-        return 1
-    fi
     case "$type" in
         'A') version='4';;
         'AAAA') version='6';;
     esac
     expected_value="$(cat "$state_dir/if_${interface}_ipv${version}_addr")"
+    if [ -z "$expected_value" ]; then
+        log "Warning: Skipping update of $type record $name for domain $domain"
+        return 1
+    fi
+    if [ -z "$current_value" ] || [ "$current_value" = 'null' ]; then
+        log "Warning: Unable to fetch value of $type record $name for domain $domain"
+        return 1
+    fi
     if [ -z "$current_value" ] || [ "$current_value" = 'null' ]; then
         log "Warning: Failed reading IPv$version address of interface '$interface'"
         return 1
@@ -574,7 +577,8 @@ log "Starting $program $version"
     log 'Setup completed'
 } ||
 {
-    log 'Setup failed'; exit 1
+    log 'Setup failed';
+    exit 1
 }
 
 if [ "$detach" = 1 ]; then
