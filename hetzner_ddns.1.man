@@ -11,8 +11,7 @@ hetzner_ddns \- Hetzner Dynamic DNS Daemon
 [\fB\-v\fR]
 .SH DESCRIPTION
 .B hetzner_ddns
-Continuously update Hetzner DNS A and AAAA records
-for your server with a dynamic IP address.
+Continuously update your servers' A and AAAA records with dynamic IP addresses.
 .SH OPTIONS
 .TP
 .BR \-c " " \fIconfig_file\fR

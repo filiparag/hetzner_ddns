@@ -1,14 +1,12 @@
 # Hetzner Dynamic DNS Daemon
 
-A simple daemon to continuously update Hetzner DNS
-_A_ and _AAAA_ records for your server with a dynamic IP address.
+Continuously update your servers' _A_ and _AAAA_ records with dynamic IP addresses.
 
-It features support for multiple subdomain records with painless
-configuration and administration.
+Manage Hetzner DNS records across several domains, with various records at different TTLs, on multiple network interfaces. This portable utility helps you get it done quickly and easily.
 
 ## Installation
 
-### Prebuilt packages
+<b>Prebuilt packages</b>
 
 Officially supported operating systems:
 
@@ -26,11 +24,17 @@ Packages for the latest stable version can be found
 
 Feel free to contribute to [first-party support](./release) for other operating systems.
 
-### Manual Installation
+> [!IMPORTANT]
+> Hetzner recently changed how their DNS service works. If you haven't migrated your existing DNS zones to the new _RRSets_ system under Hetzner Console, use the deprecated [`0.2.6`](https://github.com/filiparag/hetzner_ddns/releases/tag/0.2.6) version of this utility.
 
-Dependencies: `awk`, `curl`, `jq`.
+<details>
+    <summary>
+        <b>Manual installation</b>
+    </summary>
 
-```ini
+Dependencies: `awk`, `curl`, `net-tools`, `jq`.
+
+```shell
 # Download
 git clone https://github.com/filiparag/hetzner_ddns.git
 cd hetzner_ddns
@@ -54,76 +58,100 @@ sudo make openrc
 sudo make openwrt-rc
 ```
 
+</details>
+
 ## Configuration
 
-Configuration file is located at `/usr/local/etc/hetzner_ddns.conf`
+Configuration file is formatted using JSON. For manual installation, it is located at `/usr/local/etc/hetzner_ddns.json`, while for prebuilt packages it may be moved to `/etc/`, `/etc/config/` or `/usr/pkg/etc/`.
 
-```sh
-# Seconds between updates / TTL value
-interval='60'
+To quickly get up and running, the following minimal configuration can be used:
 
-# Hetzner DNS API key
-key='18fe3b02339b23ef2418f9feda1b69ef'
-
-# Top level domain name
-domain='example.com'
-
-# Space separated host subdomains (@ for domain itself)
-records='homelab media vpn'
-
-# Enable updating A records (IPv4)
-ipv4=true
-
-# Enable updating AAAA records (IPv6)
-ipv6=true
+```json
+{
+  "version": "1.0.0",
+  "api_key": "****************************************************************",
+  "zones": [
+    {
+      "domain": "example.com",
+      "records": [
+        {
+          "name": "@/homelab/media"
+        }
+      ]
+    }
+  ]
+}
 ```
 
-To obtain an **API key**, go to [Hetzner DNS Console](https://dns.hetzner.com/settings/api-token).
+It will update both `A` and `AAAA` records for domain root `example.com` and its subdomains `homelab` and `media`.
 
-### Configuration for prebuilt packages
+> [!NOTE]
+> All records have to be added in the [Hetzner Console](https://console.hetzner.com/) first, and only have one record per every name and type combination. The utility will otherwise terminate to prevent unexpected modifications.
+>
+> An API key can be also obtained in the Console, under Security > API tokens > Generate API token, and selecting Read & Write option.
 
-Default configuration location differs in prebuilt packages:
+<details>
+    <summary>
+        <b>Advanced configuration</b>
+    </summary>
 
-- Linux distributions: `/etc/hetzner_ddns.conf`
-- FreeBSD: `/usr/local/etc/hetzner_ddns.conf`
-- NetBSD: `/usr/pkg/etc/hetzner_ddns.conf`
-- OpenWrt: `/etc/config/hetzner_ddns.conf`
+If you need fine-grained control, the configuration can be expanded to have different TTL and egress interface per type of record. For example, you can have the `A` record of `test.example.com` subdomain use external IPv4 address of a `eth0` interface and be updated every minute, while the `AAAA` record uses `vpn1` interface which rarely changes its IPv6 address, so it can be updated hourly:
 
-### Manage records for multiple domains
-
-Currently, this utility supports management of one domain per daemon.
-If you have multiple domains, use CNAME records to point them to one
-the daemon will manage, as shown in the following example:
-
-```sh
-# Managed domain (master.tld)
-@		IN	A	    1.2.3.4
-@		IN	AAAA	1:2:3:4::
-
-# Other domain
-service		IN	CNAME	master.tld.
+```json
+{
+  "domain": "example.com",
+  "records": [
+    {
+      "name": "test",
+      "type": "A",
+      "ttl": 60,
+      "interface": "eth0"
+    },
+    {
+      "name": "test",
+      "type": "AAAA",
+      "ttl": 3600,
+      "interface": "vpn1"
+    }
+  ]
+}
 ```
 
-### Multiple daemon instances for **systemd**
+Values for `type`, `ttl` and `interface` can be ommited, in which case reasonable defaults will be used. You can override them by adding this object to the root of the configuration tree:
 
-If your operating system relies on systemd, you can easily run
-multiple daemons as shown below:
-
-```ini
-# Create configuration file for foobar.tld domain
-sudo cp -p /usr/local/etc/hetzner_ddns.conf.sample /usr/local/etc/hetzner_ddns.foobar.conf
-
-# Modify created file to reflect your preferences
-
-# Enable and start foobar.tld's daemon
-sudo systemctl enable hetzner_ddns@foobar
+```jsonc
+{
+  "defaults": {
+    "type": "A", // Default record type (can be "A", "AAAA", or "A/AAAA")
+    "ttl": 1800, // Default TTL value in seconds (60 <= TTL <= 2147483647)
+    "interface": "eth2" // Default network interface name (auto-detect if unspecified)
+  }
+}
 ```
+
+Additionally, the utility rate limits checking for changes of external IP addresses on used network interfaces. This and some other preferences can be modified by changing fields of this object:
+
+```jsonc
+{
+  "settings": {
+    "log_file": "", // Path to a custom configuration file
+    "ip_check_cooldown": 30, // Time between subsequent checks of interface's IP address
+    "request_timeout": 10, // Maximum duration of HTTP requests
+    "api_url": "https://api.hetzner.cloud/v1", // URL of the Hetzner Console's API
+    "ip_url": "https://ip.hetzner.com/" // URL of a service for retreiving external IP addresses
+  }
+}
+```
+
+An example of a configuration tree can be found [here](./hetzner_ddns.json).
+
+</details>
 
 ## Usage
 
 **Run on startup**
 
-```ini
+```shell
 # systemd
 sudo systemctl enable hetzner_ddns
 
@@ -136,7 +164,7 @@ sudo rc-update add hetzner_ddns
 
 **Start/Stop**
 
-```ini
+```shell
 # systemd
 sudo systemctl start/stop hetzner_ddns
 
@@ -144,4 +172,33 @@ sudo systemctl start/stop hetzner_ddns
 sudo service hetzner_ddns start/stop
 ```
 
-**Log file** is located at `/var/log/hetzner_ddns.log`
+**Reload (trigger update of all records)**
+
+```shell
+# systemd
+sudo systemctl reload hetzner_ddns
+
+# FreeBSD, NetBSD, OpenRC and OpenWrt currently lack this option
+```
+
+<details>
+    <summary>
+        <b>Manual usage and debugging</b>
+    </summary>
+
+The utility can also be run by any user on the system from the command line. For quick debugging, run it in verbose mode with a specified configuration file:
+
+```shell
+hetzner_ddns -V -c ./test_configuration.json
+```
+
+The following is the list of all optional arguments:
+
+- `-c <file>` Use specified configuration file
+- `-l <file>` Use specified log file
+- `-V` Display all log messages to stderr
+- `-d` Detach from current shell and run as a deamon
+- `-h` Print help and exit
+- `-v` Print version and exit
+
+</details>

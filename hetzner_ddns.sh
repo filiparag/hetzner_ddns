@@ -94,8 +94,8 @@ Configuration:
 
     "defaults": {
       "type": Default record type (can be "A", "AAAA", or "A/AAAA")
-      "interface": Default network interface name (auto-detect if unspecified),
-      "ttl": Default TTL value in seconds (60 <= TTL <= 2147483647),
+      "interface": Default network interface name (auto-detect if unspecified)
+      "ttl": Default TTL value in seconds (60 <= TTL <= 2147483647)
     }
 
     "zones": [
