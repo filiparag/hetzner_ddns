@@ -8,12 +8,12 @@
 . /etc/rc.subr
 
 name=hetzner_ddns
-rcvar="${name}_enable" 
+rcvar="${name}_enable"
 pidfile="/var/run/${name}.pid"
 start_cmd="${name}_start"
 load_rc_config $name
 command="/usr/local/bin/${name}"
-command_args="--daemon"
+command_args="-V -c /usr/local/etc/${name}.json"
 procname="/bin/sh"
 
 hetzner_ddns_start()

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $NetBSD: hetzner_ddns,v 0.2.2 2020/06/08 00:00:00 filiparag Exp $
+# $NetBSD: hetzner_ddns,v 0.2.2 2025/10/18 00:00:00 filiparag Exp $
 #
 
 # PROVIDE: hetzner_ddns
@@ -13,8 +13,8 @@ export PATH="$PATH:/usr/local/bin"
 name="hetzner_ddns"
 rcvar=$name
 command="/usr/local/bin/${name}"
-command_args="--daemon"
-required_files="/usr/local/etc/${name}.conf"
+command_args="-V -c /usr/local/etc/${name}.json"
+required_files="/usr/local/etc/${name}.json"
 pidfile="/var/run/${name}.pid"
 procname="/bin/sh"
 
