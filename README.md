@@ -4,11 +4,17 @@ Continuously update your servers' _A_ and _AAAA_ records with dynamic IP address
 
 Manage Hetzner DNS records across several domains, with various records at different TTLs, on multiple network interfaces. This portable utility helps you get it done quickly and easily.
 
-## Installation
+> [!IMPORTANT]
+> Hetzner recently changed how their DNS service works. If you haven't migrated your existing DNS zones to the new _RRSets_ system under Hetzner Console, use the deprecated [`0.2.6`](https://github.com/filiparag/hetzner_ddns/releases/tag/0.2.6) version of this utility.
 
-<b>Prebuilt packages</b>
+<details>
+    <summary>
+      <b>Prebuilt packages</b>
+    </summary>
 
-Officially supported operating systems:
+Packages for the latest stable version can be found [here](https://github.com/filiparag/hetzner_ddns/releases/latest).
+
+Officially supported platforms are:
 
 - Alpine Linux
 - Arch Linux ([AUR](https://aur.archlinux.org/packages/hetzner_ddns/))
@@ -19,13 +25,9 @@ Officially supported operating systems:
 - NetBSD
 - OpenWrt
 
-Packages for the latest stable version can be found
-[here](https://github.com/filiparag/hetzner_ddns/releases/latest).
-
 Feel free to contribute to [first-party support](./release) for other operating systems.
 
-> [!IMPORTANT]
-> Hetzner recently changed how their DNS service works. If you haven't migrated your existing DNS zones to the new _RRSets_ system under Hetzner Console, use the deprecated [`0.2.6`](https://github.com/filiparag/hetzner_ddns/releases/tag/0.2.6) version of this utility.
+</details>
 
 <details>
     <summary>
@@ -183,6 +185,7 @@ sudo systemctl reload hetzner_ddns
 
 <details>
     <summary>
+        <a id="manual-usage"></a>
         <b>Manual usage and debugging</b>
     </summary>
 
