@@ -1,5 +1,5 @@
 PORTNAME=	hetzner_ddns
-DISTVERSION=	0.2.6
+DISTVERSION=	1.0.0
 PORTREVISION=	0
 CATEGORIES=	dns
 
@@ -20,7 +20,7 @@ GH_ACCOUNT=	filiparag
 
 PLIST_FILES=	bin/${PORTNAME} \
 		share/man/man1/${PORTNAME}.1.gz \
-		"@sample etc/${PORTNAME}.conf.sample"
+		"@sample etc/${PORTNAME}.json.sample"
 
 USE_RC_SUBR=	${PORTNAME}
 
@@ -29,6 +29,6 @@ do-install:
 		${STAGEDIR}${PREFIX}/bin/${PORTNAME}
 	${INSTALL_MAN} ${WRKSRC}/${PORTNAME}.1.man \
 		${STAGEDIR}${PREFIX}/share/man/man1/${PORTNAME}.1
-	${INSTALL_DATA} ${WRKSRC}/${PORTNAME}.conf ${STAGEDIR}${PREFIX}/etc/${PORTNAME}.conf.sample
+	${INSTALL_DATA} ${WRKSRC}/${PORTNAME}.json ${STAGEDIR}${PREFIX}/etc/${PORTNAME}.json.sample
 
 .include <bsd.port.mk>

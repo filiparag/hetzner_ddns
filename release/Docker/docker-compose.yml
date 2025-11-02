@@ -3,4 +3,4 @@ services:
     image: filiparag/hetzner_ddns
     restart: unless-stopped
     volumes:
-      - /etc/hetzner_ddns.conf:/etc/hetzner_ddns.conf:ro
+      - /etc/hetzner_ddns.json:/etc/hetzner_ddns.json:ro

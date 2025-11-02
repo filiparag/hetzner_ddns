@@ -1,7 +1,7 @@
 # $NetBSD: Makefile,v 1.136 2023/08/06 14:04:00 ryoon Exp $
 
 DISTNAME=	hetzner_ddns
-PKGVER=		0.2.6
+PKGVER=		1.0.0
 PKGNAME=	${DISTNAME}-${PKGVER}
 CATEGORIES=	net
 
@@ -22,7 +22,7 @@ NO_BUILD=	yes
 NO_CONFIGURE=	yes
 
 EGDIR=			${PREFIX}/share/examples/${DISTNAME}
-CONF_FILES_PERMS=	${EGDIR}/${DISTNAME}.conf ${PKG_SYSCONFDIR}/${DISTNAME}.conf \
+CONF_FILES_PERMS=	${EGDIR}/${DISTNAME}.json ${PKG_SYSCONFDIR}/${DISTNAME}.json \
 			root wheel 0640
 
 RCD_SCRIPTS=	${DISTNAME}
@@ -41,7 +41,7 @@ do-install:
 		${DESTDIR}${PREFIX}/bin/${DISTNAME}
 	${INSTALL_MAN} ${WRKSRC}/${DISTNAME}.1.man \
 		${DESTDIR}${PREFIX}/${PKGMANDIR}/man1/${DISTNAME}.1
-	${INSTALL_DATA} ${WRKSRC}/${DISTNAME}.conf \
-		${DESTDIR}${EGDIR}/${DISTNAME}.conf
+	${INSTALL_DATA} ${WRKSRC}/${DISTNAME}.json \
+		${DESTDIR}${EGDIR}/${DISTNAME}.json
 
 .include "../../mk/bsd.pkg.mk"

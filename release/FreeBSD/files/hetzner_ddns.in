@@ -14,7 +14,7 @@ start_cmd="${name}_start"
 : ${hetzner_ddns_svcj_options:="net_basic"}
 load_rc_config $name
 command="/usr/local/bin/${name}"
-command_args="--daemon"
+command_args=""
 procname="/bin/sh"
 
 hetzner_ddns_start()

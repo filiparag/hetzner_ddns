@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hetzner-ddns
-PKG_VERSION:=0.2.6
+PKG_VERSION:=1.0.0
 PKG_RELEASE:=1
 PKG_LICENSE:=BSD-2-Clause-license
 PKG_MAINTAINER:=Filip Parag
@@ -22,18 +22,19 @@ define Package/$(PKG_NAME)
 	SECTION:=net
 	CATEGORY:=Network
 	TITLE:=Hetzner Dynamic DNS Daemon
-	DEPENDS:=+jq +gawk +curl
+	DEPENDS:=+jq +gawk +curl +net-tools
 	PKGARCH:=all
 endef
 
 define Package/$(PKG_NAME)/description
-A simple daemon to continuously update Hetzner DNS A and AAAA records for your server with a dynamic IP address.
-It features support for multiple subdomain records with painless configuration and administration.
+Continuously update your servers' A and AAAA records with dynamic IP addresses.
+Manage Hetzner DNS records across several domains, with various records at different TTLs,
+on multiple network interfaces. This portable utility helps you get it done quickly and easily.
 Please see https://github.com/filiparag/hetzner_ddns/README.md for further information.
 endef
 
 define Package/$(PKG_NAME)/conffiles
-	/etc/config/hetzner_ddns.conf
+	/etc/config/hetzner_ddns.json
 endef
 
 
@@ -51,7 +52,7 @@ define Package/$(PKG_NAME)/install
 	# copy shell script, init.d file and conf as preparation
 	mkdir -p files
 	cp $(PKG_BUILD_DIR)/hetzner_ddns.sh ./files/hetzner_ddns
-	cp $(PKG_BUILD_DIR)/hetzner_ddns.conf ./files/
+	cp $(PKG_BUILD_DIR)/hetzner_ddns.json ./files/
 	cp $(PKG_BUILD_DIR)/hetzner_ddns.openwrt.rc ./files/
 
 	# modify conf dir to match openwrt defaults /etc/config
@@ -65,7 +66,7 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_BIN) ./files/hetzner_ddns.openwrt.rc $(1)/etc/init.d/hetzner_ddns
 
 	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_DATA) ./files/hetzner_ddns.conf $(1)/etc/config/hetzner_ddns.conf
+	$(INSTALL_DATA) ./files/hetzner_ddns.json $(1)/etc/config/hetzner_ddns.json
 endef
 
 define Package/$(PKG_NAME)/prerm
@@ -78,13 +79,6 @@ define Package/$(PKG_NAME)/prerm
 	then
 		echo "Cleaning up /var/run/hetzner_ddns.pid..."
 		rm /var/run/hetzner_ddns.pid
-	fi
-
-	# cleanup log file
-	if [ -f /var/log/hetzner_ddns.log ]
-	then
-		echo "Cleaning up /var/log/hetzner_ddns.log..."
-		rm /var/log/hetzner_ddns.log
 	fi
 endef
 

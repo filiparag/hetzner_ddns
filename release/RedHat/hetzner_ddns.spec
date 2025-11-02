@@ -1,5 +1,5 @@
 Name:           hetzner_ddns
-Version:        0.2.6
+Version:        1.0.0
 Release:        1%{?dist}
 Summary:        Hetzner Dynamic DNS Daemon
 BuildArch:      noarch
@@ -9,15 +9,15 @@ Source0:        %{url}/archive/refs/tags/%{version}.tar.gz
 Obsoletes:      %{name} <= %{version}-%{release}
 Provides:       %{name} = %{version}-%{release}
 BuildRequires:  make
-Requires:       jq curl
+Requires:       jq curl net-tools
 AutoReq:        no
 
 %description
-A simple daemon to continuously update Hetzner DNS
-A and AAAA records for your server with a dynamic IP address.
+Continuously update your servers' A and AAAA records with dynamic IP addresses.
 
-It features support for multiple subdomain records with painless
-configuration and administration.
+Manage Hetzner DNS records across several domains, with various records at
+different TTLs, on multiple network interfaces. This portable utility helps you
+get it done quickly and easily.
 
 %prep
 %setup -q
@@ -31,7 +31,6 @@ make prefix=%{buildroot} install systemd
 %files
 /usr/bin/%{name}
 /usr/share/man/man1/%{name}.1.gz
-/etc/%{name}.conf.sample
+/etc/%{name}.json.sample
 /etc/systemd/system/%{name}.service
-/etc/systemd/system/%{name}@.service
-%config(noreplace) /etc/%{name}.conf
+%config(noreplace) /etc/%{name}.json

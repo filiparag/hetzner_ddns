@@ -1,9 +1,9 @@
 Hetzner Dynamic DNS Daemon
 
-A simple daemon to continuously update Hetzner DNS
-A and AAAA records for your server with a dynamic IP address.
+Continuously update your servers' A and AAAA records with dynamic IP addresses.
 
-It features support for multiple subdomain records with painless
-configuration and administration.
+Manage Hetzner DNS records across several domains, with various records at
+different TTLs, on multiple network interfaces.
+This portable utility helps you get it done quickly and easily.
 
 WWW: https://github.com/filiparag/hetzner_ddns
