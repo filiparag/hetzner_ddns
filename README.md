@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> Hetzner recently changed how their DNS service works. If you have migrated your DNS zones to the new system under Hetzner Console, use the [beta version](https://github.com/filiparag/hetzner_ddns/tree/rrsets) of this utility, which is currently in testing. Please report [here](https://github.com/filiparag/hetzner_ddns/issues/27) if you encounter any issues.
+> Hetzner recently changed how their DNS service works. If you have migrated your DNS zones to the new system under Hetzner Console, use the [beta version](https://github.com/filiparag/hetzner_ddns/releases/tag/1.0.0) of this utility, which is currently in testing. Please report [here](https://github.com/filiparag/hetzner_ddns/issues/27) if you encounter any issues.
 
 # Hetzner Dynamic DNS Daemon
 
