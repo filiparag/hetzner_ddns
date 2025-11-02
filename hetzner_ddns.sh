@@ -542,7 +542,7 @@ process_tick() {
         printf '%s' "$records" | \
         awk -v OFS='\t' -v ttl="$ttl" '$4 == ttl && $3 == "AAAA" { print $5 }' \
         | sort | uniq); do
-        update_interface_ip 4 "$i" &
+        update_interface_ip 6 "$i" &
         updaters="$! $updaters"
         echo "$!" >> "$short_processes"
     done
