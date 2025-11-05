@@ -157,8 +157,9 @@ load_and_test_api_key() {
         log 'Error: API key not provided'
         return 1
     fi
-    if [ "$(printf '%s' "$api_key" | wc -m)" != 64 ]; then
-        log 'Error: Invalid API key format'
+    api_len=$(printf '%s' "$api_key" | wc -m | tr -d '[:space:]')
+    if [ "$api_len" -ne 64 ]; then
+        log "Error: Invalid API key format (length=$api_len)"
         return 1
     fi
     if [ "$(curl \
@@ -246,13 +247,24 @@ EOF
 
 test_interfaces() {
     for i in $(printf '%s' "$records" | cut -f5 | sort | uniq); do
-        if ! test -f "/sys/class/net/$i/operstate"; then
-            log "Error: Missing network interface '$i'"
-            return 1
+        # Check if interface is present (FreeBSD: ifconfig, Linux: ip)
+        if command -v ifconfig >/dev/null 2>&1; then
+            if ! ifconfig "$i" >/dev/null 2>&1; then
+                log "Error: Missing network interface '$i'"
+                return 1
+            fi
+        elif command -v ip >/dev/null 2>&1; then
+            if ! ip link show "$i" >/dev/null 2>&1; then
+                log "Error: Missing network interface '$i'"
+                return 1
+            fi
+        else
+            log "Warning: No suitable command (ifconfig/ip) found to test interfaces"
         fi
     done
     log 'All network interfaces are working'
 }
+
 
 test_domains() {
     for d in $(printf '%s' "$records" | cut -f1 | sort | uniq -d); do
