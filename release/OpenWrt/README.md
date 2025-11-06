@@ -12,7 +12,7 @@ Additional information can be found at [procd init scripts|https://openwrt.org/d
 2. Clone OpenWrt
 ```shell
 # cloning
-git clone https://git.openwrt.org/openwrt/openwrt.git source
+git clone https://git.openwrt.org/openwrt/openwrt.git openwrt/source
 
 # checkout the release for which the package should be build for
 git checkout <version tag> # i. e. v23.05.5
@@ -27,6 +27,9 @@ cd openwrt/source
 
 # create config for all architectures
 make menuconfig
+# create toolchain
+make -j$(nproc) toolchain/install
+
 # add additional binaries to $PATH variable
 export PATH=/${YOUR_ROOT_WORKING_DIR}/openwrt/source/staging_dir/host/bin:$PATH
 ```
@@ -39,11 +42,11 @@ export PATH=/${YOUR_ROOT_WORKING_DIR}/openwrt/source/staging_dir/host/bin:$PATH
 5. Create a new `openwrt/source/feeds.conf` for the *hetzner-ddns* package and update feeds
 ```shell
 # add hetzner-ddns to feed
-echo "src-link mypackages ${YOUR_ROOT_WORKING_DIR}/hetzner_ddns/release" >> feeds.conf
+echo "src-link OpenWrt ${YOUR_ROOT_WORKING_DIR}/hetzner_ddns/release" >> feeds.conf
 
 # update feeds with your package
-./scripts/feeds update mypackages
-./scripts/feeds install -a -p mypackages
+./scripts/feeds update OpenWrt
+./scripts/feeds install -a -p OpenWrt
 
 # choose Network -> hetzner_ddns to compile in menuconfig
 make menuconfig
