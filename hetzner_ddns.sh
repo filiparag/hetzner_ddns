@@ -165,7 +165,7 @@ test_pid_file() {
 check_daemon_already_running() {
     if [ "$detach" = 1 ]; then
         daemon_pid="$(cat "$pid_file")"
-        if [ -n "$daemon_pid" ] && kill -0 "$daemon_pid"; then
+        if [ -n "$daemon_pid" ] && kill -0 "$daemon_pid" 1>/dev/null 2>/dev/null; then
             log "Error: Another daemon is already running as process $daemon_pid"
             return 1
         fi
