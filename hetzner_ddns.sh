@@ -34,7 +34,7 @@ create_log_file() {
 }
 
 test_dependencies() {
-    for d in awk curl cut getopts jq mkfifo mktemp netstat sed sort uniq; do
+    for d in awk curl cut getopts jq mkfifo mktemp netstat ifconfig sed sort uniq; do
         if ! command -v "$d" 1> /dev/null 2> /dev/null; then
             echo "Error: Missing dependency '$d'"
             return 1
@@ -247,19 +247,9 @@ EOF
 
 test_interfaces() {
     for i in $(printf '%s' "$records" | cut -f5 | sort | uniq); do
-        # Check if interface is present (FreeBSD: ifconfig, Linux: ip)
-        if command -v ifconfig >/dev/null 2>&1; then
-            if ! ifconfig "$i" >/dev/null 2>&1; then
-                log "Error: Missing network interface '$i'"
-                return 1
-            fi
-        elif command -v ip >/dev/null 2>&1; then
-            if ! ip link show "$i" >/dev/null 2>&1; then
-                log "Error: Missing network interface '$i'"
-                return 1
-            fi
-        else
-            log "Warning: No suitable command (ifconfig/ip) found to test interfaces"
+        if ! ifconfig "$i" >/dev/null 2>/dev/null; then
+            log "Error: Missing network interface '$i'"
+            return 1
         fi
     done
     log 'All network interfaces are working'
