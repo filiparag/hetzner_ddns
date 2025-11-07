@@ -1,7 +1,3 @@
-ifndef VERBOSE
-.SILENT:
-endif
-
 install: script config docs
 
 script: hetzner_ddns.sh
