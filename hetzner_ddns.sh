@@ -157,9 +157,8 @@ load_and_test_api_key() {
         log 'Error: API key not provided'
         return 1
     fi
-    api_len=$(printf '%s' "$api_key" | wc -m | tr -d '[:space:]')
-    if [ "$api_len" -ne 64 ]; then
-        log "Error: Invalid API key format (length=$api_len)"
+    if [ "$(printf '%s' "$api_key" | wc -m | tr -d '[:space:]')" != 64 ]; then
+        log 'Error: Invalid API key format'
         return 1
     fi
     if [ "$(curl \
@@ -224,11 +223,11 @@ load_records() {
 }
 
 display_records() {
-    w_domain="$(printf 'DOMAIN\n%s' "$records" | cut -f1 | wc -L)"
-    w_name="$(printf 'NAME\n%s' "$records" | cut -f2 | wc -L)"
-    w_type="$(printf 'TYPE\n%s' "$records" | cut -f3 | wc -L)"
-    w_ttl="$(printf 'TTL\n%s' "$records" | cut -f4 | wc -L)"
-    w_interface="$(printf 'INTERFACE\n%s' "$records" | cut -f5 | wc -L)"
+    w_domain="$(printf 'DOMAIN\n%s' "$records" | cut -f1 | wc -L | tr -d '[:space:]')"
+    w_name="$(printf 'NAME\n%s' "$records" | cut -f2 | wc -L | tr -d '[:space:]')"
+    w_type="$(printf 'TYPE\n%s' "$records" | cut -f3 | wc -L | tr -d '[:space:]')"
+    w_ttl="$(printf 'TTL\n%s' "$records" | cut -f4 | wc -L | tr -d '[:space:]')"
+    w_interface="$(printf 'INTERFACE\n%s' "$records" | cut -f5 | wc -L | tr -d '[:space:]')"
     log "$(printf "+-%-${w_domain}s-+-%-${w_name}s-+-%-${w_type}s-+-%-${w_ttl}s-+-%-${w_interface}s-+\n" \
         | tr ' ' '-')"
     log "$(printf "| %-${w_domain}s | %-${w_name}s | %-${w_type}s | %-${w_ttl}s | %-${w_interface}s |\n" \
@@ -254,7 +253,6 @@ test_interfaces() {
     done
     log 'All network interfaces are working'
 }
-
 
 test_domains() {
     for d in $(printf '%s' "$records" | cut -f1 | sort | uniq -d); do
