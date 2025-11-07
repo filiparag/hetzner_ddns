@@ -199,6 +199,7 @@ The following is the list of all optional arguments:
 
 - `-c <file>` Use specified configuration file
 - `-l <file>` Use specified log file
+- `-P <file>` Use specified PID file when daemonized
 - `-V` Display all log messages to stderr
 - `-d` Detach from current shell and run as a deamon
 - `-h` Print help and exit

@@ -13,7 +13,7 @@ pidfile="/var/run/${name}.pid"
 start_cmd="${name}_start"
 load_rc_config $name
 command="/usr/local/bin/${name}"
-command_args="-V -c /usr/local/etc/${name}.json"
+command_args="-V -d -c /usr/local/etc/${name}.json -l /var/log/${name}.log -P /var/run/${name}.pid"
 procname="/bin/sh"
 
 hetzner_ddns_start()

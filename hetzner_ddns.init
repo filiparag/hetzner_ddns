@@ -6,7 +6,7 @@ respawn_delay=10
 name="Hetzner Dynamic DNS Daemon"
 description="Continuously update your servers' A and AAAA records with dynamic IP addresses."
 
-command="/usr/local/bin/${RC_SVCNAME} -V -c /usr/local/etc/hetzner_ddns.json"
+command="/usr/local/bin/${RC_SVCNAME} -V -c /usr/local/etc/${RC_SVCNAME}.json"
 command_user=daemon:daemon
 
 depend() {
@@ -16,5 +16,5 @@ depend() {
 }
 
 start_pre() {
-	chown daemon:daemon /usr/local/etc/hetzner_ddns.json
+	chown daemon:daemon "/usr/local/etc/${RC_SVCNAME}.json"
 }

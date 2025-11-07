@@ -1,4 +1,4 @@
-.TH hetzner_ddns 1 "2025-10-18" "hetzner_ddns 1.0.0" "Manual for hetzner_ddns"
+.TH hetzner_ddns 1 "2025-11-07" "hetzner_ddns 1.0.1" "Manual for hetzner_ddns"
 .SH NAME
 hetzner_ddns \- Hetzner Dynamic DNS Daemon
 .SH SYNOPSIS
@@ -19,6 +19,9 @@ Use specified configuration file
 .TP
 .BR \-l " " \fIlog_file\fR
 Use specified log file
+.TP
+.BR \-P " " \fIpid_file\fR
+Use specified PID file when daemonized
 .TP
 .BR \-V
 Display all log messages to stderr

@@ -4,7 +4,8 @@ program='hetzner_ddns'
 version='1.0.0'
 detach=0
 verbose=0
-cfg_file="/etc/${program}.json"
+cfg_file="/usr/local/etc/${program}.json"
+pid_file="/var/run/${program}.pid"
 
 # User-modifiable settings
 conf_log_file=
@@ -43,12 +44,14 @@ test_dependencies() {
 }
 
 parse_cli_args() {
-    while getopts c:l:vVdh opt; do
+    while getopts c:l:P:vVdh opt; do
         case "$opt" in
             c)
                 cfg_file="$OPTARG";;
             l)
                 conf_log_file="$OPTARG";;
+            P)
+                pid_file="$OPTARG";;
             v)
                 display_version;
                 exit 0;;
@@ -76,6 +79,7 @@ Options:
 
     -c <file>   Use specified configuration file
     -l <file>   Use specified log file
+    -P <file>   Use specified PID file when daemonized
     -V          Display all log messages to stderr
     -d          Detach from current shell and run as a deamon
     -h          Print help and exit
@@ -124,9 +128,6 @@ Usage:
     Stop
         service hetzner_ddns stop
 
-    Runtime messages log file
-        Runtime log is located at /var/log/hetzner_ddns.log
-
     Trigger update of all records
         service hetzner_ddns reload
 '
@@ -149,6 +150,26 @@ test_cfg_file() {
         return 1
     fi
     log "Using configuration file '$cfg_file'"
+}
+
+test_pid_file() {
+    if [ "$detach" = 1 ]; then
+        # Test if file is writeable
+        if ! touch "$pid_file" 1>/dev/null 2>/dev/null; then
+            log "Error: Unable to open background process ID file '$pid_file'"
+            return 1
+        fi
+    fi
+}
+
+check_daemon_already_running() {
+    if [ "$detach" = 1 ]; then
+        daemon_pid="$(cat "$pid_file")"
+        if [ -n "$daemon_pid" ] && kill -0 "$daemon_pid"; then
+            log "Error: Another daemon is already running as process $daemon_pid"
+            return 1
+        fi
+    fi
 }
 
 load_and_test_api_key() {
@@ -369,10 +390,12 @@ cleanup_service_state() {
     # Kill all short-lived children processes
     for p in $(cat "$short_processes"); do
         kill -9 "$p" 1>/dev/null 2>/dev/null
+        wait "$p" 1>/dev/null 2>/dev/null
     done
     # Kill all long-running children processes
     for p in $(tail -n +2 "$long_processes" | sort -r); do
         kill -9 "$p" 1>/dev/null 2>/dev/null
+        wait "$p" 1>/dev/null 2>/dev/null
     done
     log 'Background tickers stopped'
     # Remove state directory
@@ -565,6 +588,8 @@ log "Starting $program $version"
 {
     test_dependencies && \
     parse_cli_args "$@" && \
+    test_pid_file && \
+    check_daemon_already_running && \
     test_cfg_file && \
     load_settings && \
     create_log_file && \
@@ -588,7 +613,10 @@ if [ "$detach" = 1 ]; then
         start_event_loop
         cleanup_service_state
     } 1>/dev/null 2>/dev/null &
-    log "Detaching $program to background as process $!"
+    daemon_pid="$!"
+    printf '%d' "$daemon_pid" > "$pid_file"
+    log "Registering daemon in $pid_file"
+    log "Detaching $program to background as process $daemon_pid"
 else
     spawn_event_tickers && \
     start_event_loop
