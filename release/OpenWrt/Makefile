@@ -22,7 +22,7 @@ define Package/$(PKG_NAME)
 	SECTION:=net
 	CATEGORY:=Network
 	TITLE:=Hetzner Dynamic DNS Daemon
-	DEPENDS:=+jq +gawk +curl +net-tools
+	DEPENDS:=+jq +gawk +curl
 	PKGARCH:=all
 endef
 
