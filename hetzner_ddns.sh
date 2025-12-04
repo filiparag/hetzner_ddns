@@ -1,7 +1,7 @@
 #!/bin/sh
 
 program='hetzner_ddns'
-version='1.0.0'
+version='1.0.1'
 detach=0
 verbose=0
 cfg_file="/usr/local/etc/${program}.json"

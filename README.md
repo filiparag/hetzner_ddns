@@ -4,9 +4,6 @@ Continuously update your servers' _A_ and _AAAA_ records with dynamic IP address
 
 Manage Hetzner DNS records across several domains, with various records at different TTLs, on multiple network interfaces. This portable utility helps you get it done quickly and easily.
 
-> [!IMPORTANT]
-> Hetzner recently changed how their DNS service works. If you haven't migrated your existing DNS zones to the new _RRSets_ system under Hetzner Console, use the deprecated [`0.2.6`](https://github.com/filiparag/hetzner_ddns/releases/tag/0.2.6) version of this utility.
-
 <details>
     <summary>
       <b>Prebuilt packages</b>
@@ -59,6 +56,15 @@ sudo make openrc
 # OpenWrt procd service
 sudo make openwrt-rc
 ```
+
+</details>
+
+<details>
+    <summary>
+        <b>Deprecated version (for zones not migrated to Hetzner Console)</b>
+    </summary>
+
+  If your zones are still managed via deprecated [Hetzner DNS](https://dns.hetzner.com/) service, use [`0.2.6`](https://github.com/filiparag/hetzner_ddns/releases/tag/0.2.6) version of this utility.
 
 </details>
 

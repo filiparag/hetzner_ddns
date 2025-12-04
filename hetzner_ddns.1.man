@@ -1,4 +1,4 @@
-.TH hetzner_ddns 1 "2025-11-07" "hetzner_ddns 1.0.1" "Manual for hetzner_ddns"
+.TH hetzner_ddns 1 "2025-12-04" "hetzner_ddns 1.0.1" "Manual for hetzner_ddns"
 .SH NAME
 hetzner_ddns \- Hetzner Dynamic DNS Daemon
 .SH SYNOPSIS
