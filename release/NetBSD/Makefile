@@ -1,7 +1,7 @@
 # $NetBSD: Makefile,v 1.136 2023/08/06 14:04:00 ryoon Exp $
 
 DISTNAME=	hetzner_ddns
-PKGVER=		1.0.0
+PKGVER=		1.0.1
 PKGNAME=	${DISTNAME}-${PKGVER}
 CATEGORIES=	net
 
