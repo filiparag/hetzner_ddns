@@ -81,7 +81,7 @@ Options:
     -l <file>   Use specified log file
     -P <file>   Use specified PID file when daemonized
     -V          Display all log messages to stderr
-    -d          Detach from current shell and run as a deamon
+    -d          Detach from current shell and run as a daemon
     -h          Print help and exit
     -v          Print version and exit
 '
@@ -93,7 +93,7 @@ Configuration:
       "ip_check_cooldown": Time between subsequent checks of interface'\''s IP address
       "request_timeout": Maximum duration of HTTP requests
       "api_url": URL of the Hetzner Console'\''s API
-      "ip_url": URL of a service for retreiving external IP addresses
+      "ip_url": URL of a service for retrieving external IP addresses
     }
 
     "defaults": {
@@ -513,7 +513,7 @@ update_record() {
         return 1
     fi
     if [ "$current_value" = "$expected_value" ]; then
-        log "Keep exiting value of $type record '$name' for domain '$domain'"
+        log "Keep existing value of $type record '$name' for domain '$domain'"
     else
         if curl -s -X POST -H "Authorization: Bearer $api_key" \
             -H "Content-Type: application/json" \
@@ -532,7 +532,7 @@ update_record() {
         fi
     fi
     if [ "$current_ttl" = "$ttl" ]; then
-        log "Keep exiting TTL of $type record '$name' for domain '$domain'"
+        log "Keep existing TTL of $type record '$name' for domain '$domain'"
     else
         if curl -s -X POST -H "Authorization: Bearer $api_key" \
             -H "Content-Type: application/json" \
