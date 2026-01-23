@@ -174,6 +174,15 @@ check_daemon_already_running() {
 
 load_and_test_api_key() {
     api_key="$(jq -r '.api_key' "$cfg_file")"
+    # also try to load the api_key from .api_key_file
+    if [ -z "$api_key" ] || [ "$api_key" = 'null' ]; then
+      api_key_file_path=$(jq -r '.api_key_file' "$cfg_file")
+      api_key="$(cat "$api_key_file_path")"
+      if [ "$api_key_file_path" = "null" ]; then
+        log 'Error: API key neither provided through config nor through file'
+        return 1
+      fi
+    fi
     if [ -z "$api_key" ] || [ "$api_key" = 'null' ]; then
         log 'Error: API key not provided'
         return 1

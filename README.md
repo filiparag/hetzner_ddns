@@ -97,6 +97,7 @@ It will update both `A` and `AAAA` records for domain root `example.com` and its
 > All records have to be added in the [Hetzner Console](https://console.hetzner.com/) first, and only have one record per every name and type combination. The utility will otherwise terminate to prevent unexpected modifications.
 >
 > An API key can be also obtained in the Console, under Security > API tokens > Generate API token, and selecting Read & Write option.
+> The API key can also be configured to be read from a file, using the `api_key_file` option in the config.json file.
 
 <details>
     <summary>

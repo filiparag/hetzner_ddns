@@ -1,6 +1,7 @@
 {
   "version": "1.0.1",
   "api_key": "****************************************************************",
+  "api_key_file": "/path/to/api_key_file",
   "settings": {},
   "defaults": {
     "ttl": 60
