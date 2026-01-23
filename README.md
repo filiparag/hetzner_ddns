@@ -169,6 +169,7 @@ sudo service hetzner_ddns enable
 
 # OpenRC
 sudo rc-update add hetzner_ddns
+
 ```
 
 **Start/Stop**
@@ -189,6 +190,61 @@ sudo systemctl reload hetzner_ddns
 
 # FreeBSD, NetBSD, OpenRC and OpenWrt currently lack this option
 ```
+
+<details>
+    <summary>
+        <a id="NixOS"></a>
+        <b>NixOS</b>
+    </summary>
+
+## NixOS
+### load module without flakes
+```nix
+imports = [
+  "${pkgs.fetchFromGitHub {
+    owner = "filiparag";
+    repo = "hetzner_ddns";
+    rev = "v0.1.0";
+    # also update the hash when updating to a new version!!
+    # an error with the correct sha256 will be printed when rebuilding (but only if you make it an empty string first)
+    sha256 = "sha256-trouNNC2vq43hVVZ1fnJggjrsXSHQt3MGw+VkxSg5dY="
+  }}/release/NixOS/nixos_module.nix"
+];
+```
+
+### load module with flakes
+```nix
+# in flake.nix
+inputs.hetzner_ddns = {
+  url = "github:filiparag/hetzner_ddns/1.0.1";
+  flake = false;
+};
+# in configuration.nix
+imports = [ "${inputs.hetzner_ddns}/release/NixOS/nixos_module.nix" ];
+```
+
+### enable and configure
+All options can be found [here](./release/NixOS/nixos_module.nix).
+```nix
+# basic settings
+services.hetzner_ddns = {
+ enable = true;
+ zones = [...];
+};
+
+# advanced
+services.hetzner_ddns = {
+  protections = true; # enables protection settings in the systemd service. might cause permission problems with reading the api_key_file
+  settings = {...}; # same as the settings in the config.json
+  defaults = {...}; # same as the defaults in the config.json
+  api_key_file = "/path/to/api_key_file";
+  api_key = "************************";
+}
+systemd.services.hetzner_ddns.serviceConfig = {
+  User = "myUser"; # the user under which the service will run. useful when using api_key_file but has security implications
+};
+```
+</details>
 
 <details>
     <summary>
