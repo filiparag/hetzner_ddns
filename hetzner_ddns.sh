@@ -35,7 +35,7 @@ create_log_file() {
 }
 
 test_dependencies() {
-    for d in awk curl cut getopts jq mkfifo mktemp netstat ifconfig sed sort uniq; do
+    for d in awk curl cut getopts jq mkfifo mktemp netstat ifconfig sed sort uniq touch hostname cat tr wc; do
         if ! command -v "$d" 1> /dev/null 2> /dev/null; then
             echo "Error: Missing dependency '$d'"
             return 1
