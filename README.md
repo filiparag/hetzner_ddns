@@ -201,14 +201,14 @@ sudo systemctl reload hetzner_ddns
 ### load module without flakes
 ```nix
 imports = [
-  "${pkgs.fetchFromGitHub {
+  "${(pkgs.fetchFromGitHub {
     owner = "filiparag";
     repo = "hetzner_ddns";
-    rev = "v0.1.0";
+    rev = "v1.0.1";
     # also update the hash when updating to a new version!!
     # an error with the correct sha256 will be printed when rebuilding (but only if you make it an empty string first)
     sha256 = "sha256-trouNNC2vq43hVVZ1fnJggjrsXSHQt3MGw+VkxSg5dY="
-  }}/release/NixOS/nixos_module.nix"
+  })}/release/NixOS/nixos_module.nix"
 ];
 ```
 
@@ -216,7 +216,7 @@ imports = [
 ```nix
 # in flake.nix
 inputs.hetzner_ddns = {
-  url = "github:filiparag/hetzner_ddns/1.0.1";
+  url = "github:filiparag/hetzner_ddns";
   flake = false;
 };
 # in configuration.nix
