@@ -90,7 +90,7 @@ in
           type = lib.mkOption {
             type = lib.types.str;
             default = "A";
-            description = "Default record type for zones. can be A, AAAA, CNAME, MX, TXT";
+            description = "Default record type for zones. can be A or AAAA";
           };
           ttl = lib.mkOption {
             type = lib.types.int;
@@ -122,7 +122,7 @@ in
                 type = lib.mkOption {
                   type = lib.types.nullOr lib.types.str;
                   default = null;
-                  description = "Record type, e.g. 'A', 'AAAA', 'CNAME', etc.";
+                  description = "Record type 'A' or 'AAAA'";
                 };
 
                 name = lib.mkOption {
