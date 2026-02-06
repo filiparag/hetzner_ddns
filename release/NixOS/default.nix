@@ -31,7 +31,7 @@ stdenv.mkDerivation rec {
       
     '';
     homepage = "https://github.com/filiparag/hetzner_ddns";
-    license = licenses.gpl2Only;
+    license = licenses.bsd2;
     #maintainers = [ ];
     platforms = platforms.all;
     mainProgram = "hetzner_ddns";
