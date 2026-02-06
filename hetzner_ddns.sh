@@ -174,18 +174,21 @@ check_daemon_already_running() {
 
 load_and_test_api_key() {
     api_key="$(jq -r '.api_key' "$cfg_file")"
+
     # also try to load the api_key from .api_key_file
-    if [ -z "$api_key" ] || [ "$api_key" = 'null' ]; then
-      api_key_file_path=$(jq -r '.api_key_file' "$cfg_file")
-      api_key="$(cat "$api_key_file_path")"
-      if [ "$api_key_file_path" = "null" ]; then
-        log 'Error: API key neither provided through config nor through file'
+    api_key_file_path=$(jq -r '.api_key_file' "$cfg_file")
+    api_key_from_file="$(cat "$api_key_file_path")"
+
+    if ([ -z "$api_key" ] || [ "$api_key" = 'null' ]) && [ -z "$api_key_from_file" ]; then
+        log 'Error: API key neither provided through api_key in config.json nor through api_key_file'
         return 1
-      fi
+    fi
+    if ([ -n "$api_key" ] && [ "$api_key" != 'null' ]) && [ -n "$api_key_from_file" ]; then
+        log 'Error: API key provided through BOTH config and file'
+        return 1
     fi
     if [ -z "$api_key" ] || [ "$api_key" = 'null' ]; then
-        log 'Error: API key not provided'
-        return 1
+	 	api_key=$api_key_from_file
     fi
     if [ "$(printf '%s' "$api_key" | wc -m | tr -d '[:space:]')" != 64 ]; then
         log 'Error: Invalid API key format'
@@ -200,7 +203,11 @@ load_and_test_api_key() {
         log 'Error: Provided API key is unauthorized'
         return 1
     fi
-    log 'Loaded valid API key'
+    if [ -n "$api_key_from_file" ]; then
+        log "Loaded valid API key from file: $api_key_file_path"
+    else
+        log 'Loaded valid API key from config'
+    fi
 }
 
 load_settings() {
