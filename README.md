@@ -20,6 +20,7 @@ Officially supported platforms are:
 - Fedora / openSUSE ([Copr](https://copr.fedorainfracloud.org/coprs/filiparag/hetzner_ddns/))
 - FreeBSD ([Ports tree](https://www.freshports.org/dns/hetzner_ddns/))
 - NetBSD
+- NixOS
 - OpenWrt
 
 Feel free to contribute to [first-party support](./release) for other operating systems.
@@ -31,31 +32,33 @@ Feel free to contribute to [first-party support](./release) for other operating 
         <b>Manual installation</b>
     </summary>
 
-Dependencies: `awk`, `curl`, `net-tools`, `jq`.
+  Dependencies: `awk`, `curl`, `net-tools`, `jq`.
 
-```shell
-# Download
-git clone https://github.com/filiparag/hetzner_ddns.git
-cd hetzner_ddns
+  ```shell
+  # Download
+  git clone --branch 1.0.1 \
+    --single-branch --depth 1 \
+    https://github.com/filiparag/hetzner_ddns.git
+  cd hetzner_ddns
 
-# Install
-sudo make install
+  # Install
+  sudo make install
 
-# systemd service
-sudo make systemd
+  # systemd service
+  sudo make systemd
 
-# FreeBSD service
-sudo make freebsd-rc
+  # FreeBSD service
+  sudo make freebsd-rc
 
-# NetBSD service
-sudo make netbsd-rc
+  # NetBSD service
+  sudo make netbsd-rc
 
-# OpenRC service
-sudo make openrc
+  # OpenRC service
+  sudo make openrc
 
-# OpenWrt procd service
-sudo make openwrt-rc
-```
+  # OpenWrt procd service
+  sudo make openwrt-rc
+  ```
 
 </details>
 
@@ -104,55 +107,55 @@ It will update both `A` and `AAAA` records for domain root `example.com` and its
         <b>Advanced configuration</b>
     </summary>
 
-If you need fine-grained control, the configuration can be expanded to have different TTL and egress interface per type of record. For example, you can have the `A` record of `test.example.com` subdomain use external IPv4 address of a `eth0` interface and be updated every minute, while the `AAAA` record uses `vpn1` interface which rarely changes its IPv6 address, so it can be updated hourly:
+  If you need fine-grained control, the configuration can be expanded to have different TTL and egress interface per type of record. For example, you can have the `A` record of `test.example.com` subdomain use external IPv4 address of a `eth0` interface and be updated every minute, while the `AAAA` record uses `vpn1` interface which rarely changes its IPv6 address, so it can be updated hourly:
 
-```json
-{
-  "domain": "example.com",
-  "records": [
-    {
-      "name": "test",
-      "type": "A",
-      "ttl": 60,
-      "interface": "eth0"
-    },
-    {
-      "name": "test",
-      "type": "AAAA",
-      "ttl": 3600,
-      "interface": "vpn1"
+  ```json
+  {
+    "domain": "example.com",
+    "records": [
+      {
+        "name": "test",
+        "type": "A",
+        "ttl": 60,
+        "interface": "eth0"
+      },
+      {
+        "name": "test",
+        "type": "AAAA",
+        "ttl": 3600,
+        "interface": "vpn1"
+      }
+    ]
+  }
+  ```
+
+  Values for `type`, `ttl` and `interface` can be ommited, in which case reasonable defaults will be used. You can override them by adding this object to the root of the configuration tree:
+
+  ```jsonc
+  {
+    "defaults": {
+      "type": "A", // Default record type (can be "A", "AAAA", or "A/AAAA")
+      "ttl": 1800, // Default TTL value in seconds (60 <= TTL <= 2147483647)
+      "interface": "eth2" // Default network interface name (auto-detect if unspecified)
     }
-  ]
-}
-```
-
-Values for `type`, `ttl` and `interface` can be ommited, in which case reasonable defaults will be used. You can override them by adding this object to the root of the configuration tree:
-
-```jsonc
-{
-  "defaults": {
-    "type": "A", // Default record type (can be "A", "AAAA", or "A/AAAA")
-    "ttl": 1800, // Default TTL value in seconds (60 <= TTL <= 2147483647)
-    "interface": "eth2" // Default network interface name (auto-detect if unspecified)
   }
-}
-```
+  ```
 
-Additionally, the utility rate limits checking for changes of external IP addresses on used network interfaces. This and some other preferences can be modified by changing fields of this object:
+  Additionally, the utility rate limits checking for changes of external IP addresses on used network interfaces. This and some other preferences can be modified by changing fields of this object:
 
-```jsonc
-{
-  "settings": {
-    "log_file": "", // Path to a custom configuration file
-    "ip_check_cooldown": 30, // Time between subsequent checks of interface's IP address
-    "request_timeout": 10, // Maximum duration of HTTP requests
-    "api_url": "https://api.hetzner.cloud/v1", // URL of the Hetzner Console's API
-    "ip_url": "https://ip.hetzner.com/" // URL of a service for retreiving external IP addresses
+  ```jsonc
+  {
+    "settings": {
+      "log_file": "", // Path to a custom configuration file
+      "ip_check_cooldown": 30, // Time between subsequent checks of interface's IP address
+      "request_timeout": 10, // Maximum duration of HTTP requests
+      "api_url": "https://api.hetzner.cloud/v1", // URL of the Hetzner Console's API
+      "ip_url": "https://ip.hetzner.com/" // URL of a service for retreiving external IP addresses
+    }
   }
-}
-```
+  ```
 
-An example of a configuration tree can be found [here](./hetzner_ddns.json).
+  An example of a configuration tree can be found [here](./hetzner_ddns.json).
 
 </details>
 
@@ -193,79 +196,83 @@ sudo systemctl reload hetzner_ddns
 
 <details>
     <summary>
-        <a id="NixOS"></a>
-        <b>NixOS</b>
+        <b>Manual usage and debugging</b>
     </summary>
 
-## NixOS
-### load module without flakes
-```nix
-imports = [
-  "${(pkgs.fetchFromGitHub {
-    owner = "filiparag";
-    repo = "hetzner_ddns";
-    rev = "v1.0.1";
-    # also update the hash when updating to a new version!!
-    # an error with the correct sha256 will be printed when rebuilding (but only if you make it an empty string first)
-    sha256 = "sha256-trouNNC2vq43hVVZ1fnJggjrsXSHQt3MGw+VkxSg5dY="
-  })}/release/NixOS/nixos_module.nix"
-];
-```
+  The utility can also be run by any user on the system from the command line. For quick debugging, run it in verbose mode with a specified configuration file:
 
-### load module with flakes
-```nix
-# in flake.nix
-inputs.hetzner_ddns = {
-  url = "github:filiparag/hetzner_ddns";
-  flake = false;
-};
-# in configuration.nix
-imports = [ "${inputs.hetzner_ddns}/release/NixOS/nixos_module.nix" ];
-```
+  ```shell
+  hetzner_ddns -V -c ./test_configuration.json
+  ```
 
-### enable and configure
-All options can be found [here](./release/NixOS/nixos_module.nix).
-```nix
-# basic settings
-services.hetzner_ddns = {
- enable = true;
- zones = [...];
-};
+  The following is the list of all optional arguments:
 
-# advanced
-services.hetzner_ddns = {
-  protections = true; # enables protection settings in the systemd service. might cause permission problems with reading the api_key_file
-  settings = {...}; # same as the settings in the config.json
-  defaults = {...}; # same as the defaults in the config.json
-  api_key_file = "/path/to/api_key_file";
-  api_key = "************************";
-}
-systemd.services.hetzner_ddns.serviceConfig = {
-  User = "myUser"; # the user under which the service will run. useful when using api_key_file but has security implications
-};
-```
+  - `-c <file>` Use specified configuration file
+  - `-l <file>` Use specified log file
+  - `-P <file>` Use specified PID file when daemonized
+  - `-V` Display all log messages to stderr
+  - `-d` Detach from current shell and run as a deamon
+  - `-h` Print help and exit
+  - `-v` Print version and exit
+
 </details>
 
 <details>
     <summary>
-        <a id="manual-usage"></a>
-        <b>Manual usage and debugging</b>
+        <a id="NixOS"></a>
+        <b>NixOS</b>
     </summary>
 
-The utility can also be run by any user on the system from the command line. For quick debugging, run it in verbose mode with a specified configuration file:
+  **Load module without flakes**
 
-```shell
-hetzner_ddns -V -c ./test_configuration.json
-```
+  ```nix
+  imports = [
+    "${(pkgs.fetchFromGitHub {
+      owner = "filiparag";
+      repo = "hetzner_ddns";
+      rev = "v1.0.1";
+      # also update the hash when updating to a new version!!
+      # an error with the correct sha256 will be printed when rebuilding (but only if you make it an empty string first)
+      sha256 = "sha256-trouNNC2vq43hVVZ1fnJggjrsXSHQt3MGw+VkxSg5dY="
+    })}/release/NixOS/nixos_module.nix"
+  ];
+  ```
 
-The following is the list of all optional arguments:
+  **Load module with flakes**
 
-- `-c <file>` Use specified configuration file
-- `-l <file>` Use specified log file
-- `-P <file>` Use specified PID file when daemonized
-- `-V` Display all log messages to stderr
-- `-d` Detach from current shell and run as a deamon
-- `-h` Print help and exit
-- `-v` Print version and exit
+  ```nix
+  # in flake.nix
+  inputs.hetzner_ddns = {
+    url = "github:filiparag/hetzner_ddns";
+    flake = false;
+  };
+  # in configuration.nix
+  imports = [ "${inputs.hetzner_ddns}/release/NixOS/nixos_module.nix" ];
+  ```
+
+  **Enable and configure**
+
+  All options can be found [here](./release/NixOS/nixos_module.nix).
+
+  ```nix
+  # basic settings
+  services.hetzner_ddns = {
+  enable = true;
+  zones = [...];
+  };
+
+  # advanced
+  services.hetzner_ddns = {
+    protections = true; # enables protection settings in the systemd service. might cause permission problems with reading the api_key_file
+    settings = {...}; # same as the settings in the config.json
+    defaults = {...}; # same as the defaults in the config.json
+    api_key_file = "/path/to/api_key_file";
+    api_key = "************************";
+  }
+  systemd.services.hetzner_ddns.serviceConfig = {
+    User = "myUser"; # the user under which the service will run. useful when using api_key_file but has security implications
+  };
+  ```
 
 </details>
+
