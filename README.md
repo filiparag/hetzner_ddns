@@ -64,6 +64,31 @@ Feel free to contribute to [first-party support](./release) for other operating 
 
 <details>
     <summary>
+        <b>Ansible</b>
+    </summary>
+
+  The [bierchermuesli/ansible-role-hetzner_ddns](https://github.com/Bierchermuesli/ansible-role-hetzner_ddns) role installs and configures hetzner_ddns on any systemd-based Linux distribution.
+
+  ```shell
+  ansible-galaxy install git+https://github.com/Bierchermuesli/ansible-role-hetzner_ddns.git
+  ```
+
+  ```yaml
+  - hosts: homelab
+    roles:
+      - role: bierchermuesli.hetzner_ddns
+        vars:
+          hetzner_ddns_api_key: "yourapikey"
+          hetzner_ddns_zones:
+            - domain: example.com
+              records:
+                - name: "@"
+  ```
+
+</details>
+
+<details>
+    <summary>
         <b>Deprecated version (for zones not migrated to Hetzner Console)</b>
     </summary>
 
