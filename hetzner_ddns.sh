@@ -13,6 +13,7 @@ conf_ip_check_cooldown=30
 conf_request_timeout=10
 conf_api_url='https://api.hetzner.cloud/v1'
 conf_ip_url='https://ip.hetzner.com/'
+conf_auto_create_records=0
 
 log() {
     if test -r "$conf_log_file"; then
@@ -94,6 +95,7 @@ Configuration:
       "request_timeout": Maximum duration of HTTP requests
       "api_url": URL of the Hetzner Console'\''s API
       "ip_url": URL of a service for retrieving external IP addresses
+      "auto_create_records": Automatically create missing DNS records (default: false)
     }
 
     "defaults": {
@@ -339,8 +341,12 @@ EOF
                 jq '.rrset.records | length'
         )"
         if [ "$record_entries" -eq 0 ]; then
-            log "Error: $record_type record '$record_name' for domain '$record_domain' doesn't exist in Hetzner Console"
-            return 1
+            if [ "$conf_auto_create_records" = 1 ]; then
+                log "Note: $record_type record '$record_name' for domain '$record_domain' does not exist and will be created"
+            else
+                log "Error: $record_type record '$record_name' for domain '$record_domain' doesn't exist in Hetzner Console"
+                return 1
+            fi
         elif [ "$record_entries" -gt 1 ]; then
             log "Error: $record_type record '$record_name' for domain '$record_domain' has more than one entry"
             return 1
@@ -499,6 +505,7 @@ update_record() {
     ttl=$4
     interface=$5
     log "Update time reached for $type record '$name' for domain '$domain'"
+    record_comment="Managed by $program on $(hostname) at $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
     current_rrset="$(
         curl -s -H "Authorization: Bearer $api_key" \
         "$conf_api_url/zones/$domain/rrsets/$name/$type"
@@ -521,12 +528,29 @@ update_record() {
         return 1
     fi
     if [ -z "$current_value" ] || [ "$current_value" = 'null' ]; then
-        log "Warning: Unable to fetch value of $type record $name for domain $domain"
-        return 1
-    fi
-    if [ -z "$current_value" ] || [ "$current_value" = 'null' ]; then
-        log "Warning: Failed reading IPv$version address of interface '$interface'"
-        return 1
+        if [ "$conf_auto_create_records" = 1 ]; then
+            if curl -s -X POST -H "Authorization: Bearer $api_key" \
+                    -H "Content-Type: application/json" \
+                    -d "{
+                        \"name\": \"$name\",
+                        \"type\": \"$type\",
+                        \"ttl\": $ttl,
+                        \"records\": [
+                            {
+                                \"value\": \"$expected_value\",
+                                \"comment\": \"$record_comment\"
+                            }
+                        ]
+                    }" \
+                    "$conf_api_url/zones/$domain/rrsets" >/dev/null; then
+                log "Created $type record '$name' for domain '$domain': $expected_value"
+            else
+                log "Warning: Unable to create $type record '$name' for domain '$domain'"
+            fi
+        else
+            log "Warning: Unable to fetch value of $type record '$name' for domain '$domain'"
+        fi
+        return
     fi
     if [ "$current_value" = "$expected_value" ]; then
         log "Keep existing value of $type record '$name' for domain '$domain'"
@@ -537,7 +561,7 @@ update_record() {
                 \"records\": [
                     {
                         \"value\": \"$expected_value\",
-                        \"comment\": \"Managed by $program on $(hostname)\"
+                        \"comment\": \"$record_comment\"
                     }
                 ]
             }" \
