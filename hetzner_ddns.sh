@@ -179,7 +179,9 @@ load_and_test_api_key() {
 
     # also try to load the api_key from .api_key_file
     api_key_file_path=$(jq -r '.api_key_file' "$cfg_file")
-    api_key_from_file="$(cat "$api_key_file_path")"
+    if [ -n "$api_key_file_path" ] && [ "$api_key_file_path" != 'null' ]; then
+        api_key_from_file="$(cat "$api_key_file_path")"
+    fi
 
     if ([ -z "$api_key" ] || [ "$api_key" = 'null' ]) && [ -z "$api_key_from_file" ]; then
         log 'Error: API key neither provided through api_key in config.json nor through api_key_file'
@@ -341,7 +343,7 @@ EOF
                 jq '.rrset.records | length'
         )"
         if [ "$record_entries" -eq 0 ]; then
-            if [ "$conf_auto_create_records" = 1 ]; then
+            if [ "$conf_auto_create_records" = 1 ] || [ "$conf_auto_create_records" = 'true' ]; then
                 log "Note: $record_type record '$record_name' for domain '$record_domain' does not exist and will be created"
             else
                 log "Error: $record_type record '$record_name' for domain '$record_domain' doesn't exist in Hetzner Console"
@@ -528,7 +530,7 @@ update_record() {
         return 1
     fi
     if [ -z "$current_value" ] || [ "$current_value" = 'null' ]; then
-        if [ "$conf_auto_create_records" = 1 ]; then
+        if [ "$conf_auto_create_records" = 1 ] || [ "$conf_auto_create_records" = 'true' ]; then
             if curl -s -X POST -H "Authorization: Bearer $api_key" \
                     -H "Content-Type: application/json" \
                     -d "{
