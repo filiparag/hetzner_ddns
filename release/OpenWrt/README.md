@@ -1,11 +1,11 @@
 ### Building hetzner_ddns for OpenWrt
-This is a short introduction on how to build *hetzner_ddns* for OpenWrt (`.ipk`).
+This is a short introduction on how to build *hetzner_ddns* for OpenWrt (`.apk`).
 
 #### Sources of information
-The hetzner-ddns package is build using the [developer guide|https://openwrt.org/docs/guide-developer/start] for OpenWrt.
-Especially the [hello world example|https://openwrt.org/docs/guide-developer/helloworld/start] helps to understand `opkg` package feeds.
+The hetzner-ddns package is build using the [developer guide](https://openwrt.org/docs/guide-developer/start) for OpenWrt.
+Especially the [hello world example](https://openwrt.org/docs/guide-developer/helloworld/start) helps to understand OpenWrt package feeds.
 
-Additional information can be found at [procd init scripts|https://openwrt.org/docs/guide-developer/procd-init-scripts] in order to create the `/etc/init.d/hetzner_ddns` service.
+Additional information can be found at [procd init scripts](https://openwrt.org/docs/guide-developer/procd-init-scripts) in order to create the `/etc/init.d/hetzner_ddns` service.
 
 #### Build steps
 1. Clone *hetzner_ddns* repository: `git clone https://github.com/filiparag/hetzner_ddns`
@@ -52,6 +52,6 @@ echo "src-link OpenWrt ${YOUR_ROOT_WORKING_DIR}/hetzner_ddns/release" >> feeds.c
 make menuconfig
 ```
 6. Build package `make -j$(nproc) package/OpenWrt/compile` within `openwrt/source` directory
-7. Copy the created package to your router and install it on OpenWrt with `opkg install hetzner-ddns_*.ipk`
+7. Copy the created package to your router and install it on OpenWrt with `apk add hetzner-ddns_*.apk`
 
 
