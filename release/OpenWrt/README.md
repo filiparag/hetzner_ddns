@@ -1,5 +1,9 @@
 ### Building hetzner_ddns for OpenWrt
 This is a short introduction on how to build *hetzner_ddns* for OpenWrt (`.apk`).
+> [!NOTE]
+> As OpenWrt transitioned from `opkg` to `apk` package manager in release `25.12`, please see the [opkg to apk cheat sheet](https://openwrt.org/docs/guide-user/additional-software/opkg-to-apk-cheatsheet).
+>
+> The below build process stays the same and generates an `.apk` packge for versions from `25.12` onwards and `.ipk` for earlier versions.
 
 #### Sources of information
 The hetzner-ddns package is build using the [developer guide](https://openwrt.org/docs/guide-developer/start) for OpenWrt.
