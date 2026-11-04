@@ -257,9 +257,9 @@ load_and_test_api_key() {
     # Check first if API key is  provided via environment variable
     if [ -n "$HETZNER_DDNS_API_KEY" ]; then
         api_key_field="$HETZNER_DDNS_API_KEY"
-        log 'INFO' 'API key supplied via environment variable'
         if printf '%s' "$api_key_field" | grep -q '^[a-zA-Z0-9]\{64\}$'; then
             api_key="$api_key_field"
+            api_key_type="env"
         else
             log 'ERROR' 'Invalid API key format'
             return 1
@@ -314,6 +314,8 @@ load_and_test_api_key() {
     fi
     if [ "$api_key_type" = 'file' ]; then
         log 'INFO' "Loaded valid API key from file: '$api_key_field'"
+    elif [ "$api_key_type" = 'env' ]; then
+        log 'INFO' 'Loaded valid API key from environment variable'
     else
         log 'INFO' 'Loaded valid API key from the configuration file'
     fi
