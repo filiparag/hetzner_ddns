@@ -67,7 +67,7 @@ create_log_file() {
 }
 
 test_dependencies() {
-    for d in awk curl cut getopts jq mkfifo mktemp netstat ifconfig sed sort uniq touch uname cat tr wc; do
+    for d in awk grep curl cut getopts jq mkfifo mktemp netstat ifconfig sed sort uniq touch uname cat tr wc; do
         if ! command -v "$d" 1> /dev/null 2> /dev/null; then
             echo "Error: Missing dependency '$d'"
             return 1
@@ -124,6 +124,7 @@ echo '
 Configuration:
 
     "api_key": Read-write API key (64 characters) or an absolute file path containing it
+                (API key can also be set via the HETZNER_DDNS_API_KEY environment variable, which takes precedence)
 
     "settings": {
       "log_file": Path to a custom configuration file
@@ -253,41 +254,53 @@ check_for_updates() {
 }
 
 load_and_test_api_key() {
-    api_key_field="$(jq -r '.api_key' "$cfg_file")"
-    if [ -z "$api_key_field" ] || [ "$api_key_field" = 'null' ]; then
-        log 'ERROR' 'API key not provided'
-    fi
-    # Determine if API key is provided inline or in a file
-    api_key_type="$(awk -v key="$api_key_field" 'BEGIN {
-        if (key ~ /^\//) {
-            print "file"
-        } else if (length(key) == 64 && key ~ /^[a-zA-Z0-9]+$/) {
-            print "inline"
-        } else {
-            print "invalid"
-        }
-    }')"
-    if [ "$api_key_type" = 'invalid' ]; then
-        log 'ERROR' 'Invalid API key field format'
-        return 1;
-    fi
-    # Load API key from file
-    if [ "$api_key_type" = 'file' ]; then
-        if ! [ -r "$api_key_field" ]; then
-            log 'ERROR' 'Provided API key file is not readable'
-            return 1
-        fi
-        log 'INFO' 'API key supplied in a file'
-        api_key="$(
-            cat "$api_key_field" | tr -d '[:space:]'
-        )"
-        if [ "$(printf '%s' "$api_key" | wc -m | tr -d '[:space:]')" != 64 ]; then
+    # Check first if API key is  provided via environment variable
+    if [ -n "$HETZNER_DDNS_API_KEY" ]; then
+        api_key_field="$HETZNER_DDNS_API_KEY"
+        if printf '%s' "$api_key_field" | grep -q '^[a-zA-Z0-9]\{64\}$'; then
+            api_key="$api_key_field"
+            api_key_type="env"
+        else
             log 'ERROR' 'Invalid API key format'
             return 1
         fi
     else
-        api_key="$api_key_field"
-        log 'INFO' 'API key supplied inline'
+        api_key_field="$(jq -r '.api_key' "$cfg_file")"
+        if [ -z "$api_key_field" ] || [ "$api_key_field" = 'null' ]; then
+            log 'ERROR' 'API key not provided in the configuration file or HETZNER_DDNS_API_KEY environment variable'
+        fi
+        # Determine if API key is provided inline or in a file
+        api_key_type="$(awk -v key="$api_key_field" 'BEGIN {
+            if (key ~ /^\//) {
+                print "file"
+            } else if (length(key) == 64 && key ~ /^[a-zA-Z0-9]+$/) {
+                print "inline"
+            } else {
+                print "invalid"
+            }
+        }')"
+        if [ "$api_key_type" = 'invalid' ]; then
+            log 'ERROR' 'Invalid API key field format'
+            return 1;
+        fi
+        # Load API key from file
+        if [ "$api_key_type" = 'file' ]; then
+            if ! [ -r "$api_key_field" ]; then
+                log 'ERROR' 'Provided API key file is not readable'
+                return 1
+            fi
+            log 'INFO' 'API key supplied in a file'
+            api_key="$(
+                cat "$api_key_field" | tr -d '[:space:]'
+            )"
+            if [ "$(printf '%s' "$api_key" | wc -m | tr -d '[:space:]')" != 64 ]; then
+                log 'ERROR' 'Invalid API key format'
+                return 1
+            fi
+        else
+            api_key="$api_key_field"
+            log 'INFO' 'API key supplied inline'
+        fi
     fi
     # Test key validity by querying the server
     if [ "$(curl \
@@ -301,6 +314,8 @@ load_and_test_api_key() {
     fi
     if [ "$api_key_type" = 'file' ]; then
         log 'INFO' "Loaded valid API key from file: '$api_key_field'"
+    elif [ "$api_key_type" = 'env' ]; then
+        log 'INFO' 'Loaded valid API key from environment variable'
     else
         log 'INFO' 'Loaded valid API key from the configuration file'
     fi
